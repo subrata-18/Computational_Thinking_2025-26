@@ -1,0 +1,55 @@
+const API_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+async function request<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.error || "Something went wrong.");
+  }
+
+  return data;
+}
+
+export function signup(username: string, password: string) {
+  return request<{
+    message: string;
+    data: {
+      id: number | string;
+      username: string;
+    };
+  }>("/NewUser_login", {
+    method: "POST",
+    body: JSON.stringify({
+      Username: username,
+      NewPassword: password,
+    }),
+  });
+}
+
+export function login(username: string, password: string) {
+  return request<{
+    message: string;
+    data: {
+      id: number | string;
+      username: string;
+    };
+  }>("/Old_User_login", {
+    method: "POST",
+    body: JSON.stringify({
+      Username: username,
+      Password: password,
+    }),
+  });
+}

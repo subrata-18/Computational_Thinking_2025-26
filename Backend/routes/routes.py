@@ -9,15 +9,20 @@ def register_routes(app):
     def home():
         return {"message": "Backend is running"}
 
-    @app.route("/data", methods=["POST"])
+    @app.route("/NewUser_login", methods=["POST"])
     def receive_data():
-        data = request.get_json(silent=True) or {}
+        NewUserdata = request.get_json(silent=True) or {}
 
-        required_fields = {"username", "password", "email_id"}
+        if not isinstance(NewUserdata, dict):
+            return {
+                "error": "Invalid JSON payload"
+            }, 400
+
+        required_fields = {"Username", "NewPassword"}
         allowed_fields = required_fields
 
-        missing_fields = required_fields - data.keys()
-        extra_fields = set(data.keys()) - allowed_fields
+        missing_fields = required_fields - NewUserdata.keys()
+        extra_fields = set(NewUserdata.keys()) - allowed_fields
 
         if missing_fields:
             return {
@@ -29,20 +34,45 @@ def register_routes(app):
                 "error": f"Unexpected fields: {sorted(extra_fields)}"
             }, 400
 
-        user = User(
-            username=data["username"],
-            password=data["password"],
-            email_id=data["email_id"],
-        )
+        local_username = NewUserdata["Username"]
+        local_password = NewUserdata["NewPassword"]
 
-        db.session.add(user)
-        db.session.commit()
+        if not isinstance(local_username, str) or not isinstance(local_password, str):
+            return {
+                "error": "Username and NewPassword must both be strings"
+            }, 400
+
+        try:
+            existing_user = User.query.filter_by(username=local_username).first()
+        except Exception:
+            return {
+                "error": "Database query failed"
+            }, 500   
+            
+        if existing_user:
+            return {
+                "error": "Username already exists"
+            }, 409
+
+        user = User(
+            username=local_username,
+            password=local_password,
+        )
+        
+        try:
+            db.session.add(user)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            return {
+                "error": "Failed to create user",
+                "exception": str(e)
+            }, 500
 
         return {
             "message": "User created successfully",
             "data": {
                 "id": user.id,
                 "username": user.username,
-                "email_id": user.email_id,
             },
         }, 201

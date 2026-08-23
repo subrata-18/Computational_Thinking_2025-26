@@ -1,16 +1,23 @@
 from flask import request
 
-from database.db import db
-from database.models import User
+from services.user_services import create_user, login_user
+
 
 def register_routes(app):
 
     @app.route("/")
     def home():
-        return {"message": "Backend is running"}
+        return {
+            "message": "Backend is running"
+        }
+
+    # -------------------------
+    # CREATE NEW USER
+    # -------------------------
 
     @app.route("/NewUser_login", methods=["POST"])
     def receive_NewUser_data():
+
         NewUserdata = request.get_json(silent=True) or {}
 
         if not isinstance(NewUserdata, dict):
@@ -18,7 +25,11 @@ def register_routes(app):
                 "error": "Invalid JSON payload"
             }, 400
 
-        required_fields = {"Username", "NewPassword"}
+        required_fields = {
+            "Username",
+            "NewPassword"
+        }
+
         allowed_fields = required_fields
 
         missing_fields = required_fields - NewUserdata.keys()
@@ -37,36 +48,33 @@ def register_routes(app):
         local_username = NewUserdata["Username"]
         local_password = NewUserdata["NewPassword"]
 
-        if not isinstance(local_username, str) or not isinstance(local_password, str):
+        if (
+            not isinstance(local_username, str)
+            or not isinstance(local_password, str)
+        ):
             return {
                 "error": "Username and NewPassword must both be strings"
             }, 400
 
-        try:
-            existing_user = User.query.filter_by(username=local_username).first()
-        except Exception:
+        # Call service
+        user, error = create_user(
+            local_username,
+            local_password
+        )
+
+        if error == "Username already exists":
             return {
-                "error": "Database query failed"
-            }, 500   
-            
-        if existing_user:
-            return {
-                "error": "Username already exists"
+                "error": error
             }, 409
 
-        user = User(
-            username=local_username,
-            password=local_password,
-        )
-        
-        try:
-            db.session.add(user)
-            db.session.commit()
-        except Exception as e:
-            db.session.rollback()
+        if error == "Database query failed":
             return {
-                "error": "Failed to create user",
-                "exception": str(e)
+                "error": error
+            }, 500
+
+        if error == "Failed to create user":
+            return {
+                "error": error
             }, 500
 
         return {
@@ -76,9 +84,15 @@ def register_routes(app):
                 "username": user.username,
             },
         }, 201
-        
+
+
+    # -------------------------
+    # LOGIN EXISTING USER
+    # -------------------------
+
     @app.route("/Old_User_login", methods=["POST"])
     def receive_OldUser_data():
+
         Userdata = request.get_json(silent=True) or {}
 
         if not isinstance(Userdata, dict):
@@ -86,10 +100,12 @@ def register_routes(app):
                 "error": "Invalid JSON payload"
             }, 400
 
-        required_fields = {"Username", "Password"}
+        required_fields = {
+            "Username",
+            "Password"
+        }
 
         missing_fields = required_fields - Userdata.keys()
-       
 
         if missing_fields:
             return {
@@ -99,33 +115,50 @@ def register_routes(app):
         local_username = Userdata.get("Username")
         local_password = Userdata.get("Password")
 
-        if not isinstance(local_username, str) or not isinstance(local_password, str):
+        if (
+            not isinstance(local_username, str)
+            or not isinstance(local_password, str)
+        ):
             return {
                 "error": "Username and Password must both be strings"
             }, 400
 
-        try:
-            existing_user = User.query.filter_by(username=local_username).first()
-        except Exception as e:
+        # Call service
+        user, error = login_user(
+            local_username,
+            local_password
+        )
+
+        if error == "Database query failed":
             return {
-                "error": "Database query failed",
-                "exception": str(e)
+                "error": error
             }, 500
 
-        if not existing_user:
+        if error == "Username not found":
             return {
-                "error": "Username not found"
+                "error": error
             }, 404
 
-        if existing_user.password != local_password:
+        if error == "Incorrect password":
             return {
-                "error": "Incorrect password"
+                "error": error
             }, 401
 
         return {
             "message": "Login successful",
             "data": {
-                "id": existing_user.id,
-                "username": existing_user.username,
+                "id": user.id,
+                "username": user.username,
             },
         }, 200
+        
+    @app.route("/QuestionPost", methods=["POST"])
+    def receive_Question_data():
+        
+        question_data = request.get_json(silent=True) or {}
+        
+        if not isinstance(question_data, dict):
+            return {
+                "error": "Invalid JSON payload"
+            }, 400
+        

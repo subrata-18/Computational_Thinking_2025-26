@@ -161,4 +161,17 @@ def register_routes(app):
             return {
                 "error": "Invalid JSON payload"
             }, 400
+            
+        required_fields = {
+                    "Username",
+                    "Question",
+                    "Image_url"
+                }
+        
+        missing_fields = required_fields - question_data.keys()
+        
+        if missing_fields:
+            return {
+                "error": f"Missing fields: {sorted(missing_fields)}"
+            }, 400
         

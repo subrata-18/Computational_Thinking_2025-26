@@ -241,6 +241,7 @@ def get_response(username, question, img_path):
     
     except Exception as e:
         raise RuntimeError(f"Failed to get response from Gemini API: {e}")
+        
     
     return response
 

@@ -49,3 +49,24 @@ def login_user(username, password):
         return None, "Incorrect password"
 
     return existing_user, None
+
+def add_UserQuestion(username, question_text, question_img, ai_questions, ai_answers):
+    from database.models import Question
+
+    # Create a new Question instance
+    new_question = Question(
+        username=username,
+        question_text=question_text,
+        question_img=question_img,
+        ai_questions=ai_questions,
+        ai_answers=ai_answers
+    )
+
+    try:
+        db.session.add(new_question)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return None, f"Failed to add question: {e}"
+
+    return ()

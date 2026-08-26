@@ -1,6 +1,7 @@
 from flask import request
 
 from services.user_services import create_user, login_user
+from services.questionAPI import get_response
 
 
 def register_routes(app):
@@ -165,7 +166,7 @@ def register_routes(app):
         required_fields = {
                     "Username",
                     "Question",
-                    "Image_url"
+                    "Image_path"
                 }
         
         missing_fields = required_fields - question_data.keys()
@@ -174,4 +175,20 @@ def register_routes(app):
             return {
                 "error": f"Missing fields: {sorted(missing_fields)}"
             }, 400
+            
+        username = question_data.get("Username")
+        question = question_data.get("Question")
+        img_path = question_data.get("Image_path")
         
+        try: 
+            response = get_response(
+                username,
+                question,
+                img_path
+            )
+        except Exception as e:
+            return {
+                "error": f"Failed to get response from Gemini API: {e}"
+            }, 500
+            
+        return response, 200

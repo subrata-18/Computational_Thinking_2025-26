@@ -1,55 +1,22 @@
 import os
 import json
+import mimetypes
+from urllib.parse import urlparse
+from urllib.request import urlopen
 
 from google import genai
 from google.genai import types
 from database.db import db
 from database.models import User
 from database.models import Question
+from dotenv import load_dotenv  
+from services.supabase_service import create_signedURL
 
+load_dotenv()
+api_key1 = os.getenv("API_KEY1")
+api_key2 = os.getenv("API_KEY2")
 
-
-def call_gemini_with_fallback(prompt: str, response_schema: dict, api_key1: str, api_key2: str):
-    models = ["gemini-3-flash", "gemini-3.5-flash","gemini-3.5-flash-lite","gemini-3.1-flash-lite"]
-    last_error = None
-
-    for key in (api_key1, api_key2):
-        try:
-            client = genai.Client(api_key=key)
-
-            response = client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                    response_schema=response_schema,
-                ),
-            )
-
-            # Handle parsed JSON response if available
-            if hasattr(response, "parsed") and response.parsed is not None:
-                return response.parsed
-
-            # Fallback for text response
-            if hasattr(response, "text") and response.text:
-                return json.loads(response.text)
-
-            # If model returns something unexpected, raise to trigger fallback
-            raise ValueError("Empty Gemini response")
-
-        except Exception as exc:
-            last_error = exc
-            print(f"Gemini request failed with key: {key[:8]}... -> {exc}")
-            continue
-
-    raise RuntimeError(f"All Gemini API keys failed. Last error: {last_error}")
-
-
-def get_response(username, question, img_url):
-    api_key1 = os.getenv("API_KEY1")
-    api_key2 = os.getenv("API_KEY2")
-
-    prompt = """
+prompt = """
 You are an AI Computational Thinking Mathematics Tutor.
 
 The user provides a mathematics problem as text, an image, or both. Analyze the complete problem, including any diagrams/images. Do not invent missing or unreadable information.
@@ -105,7 +72,7 @@ Before returning, verify:
 - The output follows the configured JSON schema exactly.
 """
 
-    response_schema = {
+response_schema = {
         "type": "object",
         "properties": {
             "is_relevant": {
@@ -186,8 +153,100 @@ Before returning, verify:
             "ai_questions",
             "user_question"
         ]
-    }
+}
     
+
+
+
+def call_gemini_with_fallback(prompt: str, img_url: str):
+    models = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"]
+
+
+    for key in(api_key1, api_key2):
+        
+        for model in models:
+            try:
+
+                client = genai.Client(api_key=key)
+                contents = [prompt]
+
+                if img_url:
+                    with urlopen(img_url, timeout=15) as image_response:
+                        image_data = image_response.read()
+                        mime_type = image_response.headers.get_content_type()
+
+                    if mime_type == "application/octet-stream":
+                        mime_type = mimetypes.guess_type(
+                            urlparse(img_url).path
+                        )[0]
+
+                    supported_mime_types = {
+                        "image/jpeg",
+                        "image/png",
+                        "image/webp",
+                        "image/heic",
+                        "image/heif",
+                    }
+                    if mime_type not in supported_mime_types:
+                        raise ValueError(
+                            f"Unsupported image MIME type: {mime_type}"
+                        )
+
+                    contents.append(
+                        types.Part.from_bytes(
+                            data=image_data,
+                            mime_type=mime_type,
+                        )
+                    )
+
+                response = client.models.generate_content(
+                    model=model,
+                    contents=contents,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        response_schema=response_schema,
+                    ),
+                )
+
+                if response.parsed is not None:
+                    return response.parsed
+
+                if response.text:
+                    return json.loads(response.text)
+
+                raise RuntimeError("Gemini returned an empty response")
+
+            except Exception as error:
+                print(f"Error with model and could not generate response")
+                continue
+
+    raise RuntimeError("All Gemini attempts failed")
+
+
+def get_response(username, question, img_path):
     
+    if img_path:
+        try:
+            img_url = create_signedURL(img_path)
+        except Exception as e:
+            print(f"Error creating signed URL for image {img_path}: {e}")
+            img_url = None
+    else:
+        img_url = None
+        
+    prompt_with_question = f"{prompt}\n\nUser's question: {question}"
+    
+    try:
+        response = call_gemini_with_fallback(prompt_with_question, img_url)
+    
+    except Exception as e:
+        raise RuntimeError(f"Failed to get response from Gemini API: {e}")
+    
+    return response
+
+
+
+
+
 
 

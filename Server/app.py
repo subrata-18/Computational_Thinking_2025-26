@@ -13,7 +13,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 CORS(
     app,
-    resources={r"/*": {"origins": ["http://localhost:5173"]}},
+    resources={r"/*": {"origins": "*"}},
     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
 )
@@ -29,4 +29,4 @@ except Exception as e:
     print(f"Error creating database tables: {e}")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)

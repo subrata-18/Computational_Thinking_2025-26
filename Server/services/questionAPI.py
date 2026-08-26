@@ -156,48 +156,69 @@ response_schema = {
 }
     
 
-
-
 def call_gemini_with_fallback(prompt: str, img_url: str):
-    models = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"]
 
+    models = [
+        "gemini-3.5-flash-lite",
+        "gemini-3.1-flash-lite"
+    ]
 
-    for key in(api_key1, api_key2):
-        
+    contents = [prompt]
+
+    if img_url:
+        try:
+            with urlopen(img_url, timeout=15) as image_response:
+                image_data = image_response.read()
+                mime_type = image_response.headers.get_content_type()
+
+            if mime_type == "application/octet-stream":
+                mime_type = mimetypes.guess_type(
+                    urlparse(img_url).path
+                )[0]
+
+            supported_mime_types = {
+                "image/jpeg",
+                "image/png",
+                "image/webp",
+                "image/heic",
+                "image/heif",
+            }
+
+            if mime_type not in supported_mime_types:
+                raise ValueError(
+                    f"Unsupported image MIME type: {mime_type}"
+                )
+
+            contents.append(
+                types.Part.from_bytes(
+                    data=image_data,
+                    mime_type=mime_type,
+                )
+            )
+
+        except Exception as error:
+            raise RuntimeError(
+                f"Failed to download/process image: {error}"
+            )
+
+    # ------------------------------------------------
+    # Gemini fallback
+    # ------------------------------------------------
+
+    for key_index, key in enumerate(
+        (api_key1, api_key2),
+        start=1
+    ):
+
+        client = genai.Client(api_key=key)
+
         for model in models:
+
             try:
 
-                client = genai.Client(api_key=key)
-                contents = [prompt]
-
-                if img_url:
-                    with urlopen(img_url, timeout=15) as image_response:
-                        image_data = image_response.read()
-                        mime_type = image_response.headers.get_content_type()
-
-                    if mime_type == "application/octet-stream":
-                        mime_type = mimetypes.guess_type(
-                            urlparse(img_url).path
-                        )[0]
-
-                    supported_mime_types = {
-                        "image/jpeg",
-                        "image/png",
-                        "image/webp",
-                        "image/heic",
-                        "image/heif",
-                    }
-                    if mime_type not in supported_mime_types:
-                        raise ValueError(
-                            f"Unsupported image MIME type: {mime_type}"
-                        )
-
-                    contents.append(
-                        types.Part.from_bytes(
-                            data=image_data,
-                            mime_type=mime_type,
-                        )
-                    )
+                print(
+                    f"Trying key {key_index}, model {model}"
+                )
 
                 response = client.models.generate_content(
                     model=model,
@@ -209,18 +230,34 @@ def call_gemini_with_fallback(prompt: str, img_url: str):
                 )
 
                 if response.parsed is not None:
+                    print(
+                        f"Success: key {key_index}, model {model}"
+                    )
                     return response.parsed
 
                 if response.text:
+                    print(
+                        f"Success: key {key_index}, model {model}"
+                    )
                     return json.loads(response.text)
 
-                raise RuntimeError("Gemini returned an empty response")
+                raise RuntimeError(
+                    "Gemini returned an empty response"
+                )
 
             except Exception as error:
-                print(f"Error with model and could not generate response")
+
+                print(
+                    f"Failed: key {key_index}, "
+                    f"model {model}: "
+                    f"{type(error).__name__}: {error}"
+                )
+
                 continue
 
-    raise RuntimeError("All Gemini attempts failed")
+    raise RuntimeError(
+        "All Gemini attempts failed"
+    )
 
 
 def get_response(username, question, img_path):

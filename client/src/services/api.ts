@@ -1,10 +1,10 @@
-const API_URL =
-  import.meta.env.VITE_API_URL || "https://computational-thinking-2025-26.onrender.com";
+import type { AuthResponse, QuestionResponse } from "../types";
 
-async function request<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<T> {
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://computational-thinking-2025-26.onrender.com";
+
+async function request<T>(endpoint: string, options: RequestInit = {}) {
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers: {
@@ -19,17 +19,11 @@ async function request<T>(
     throw new Error(data.error || "Something went wrong.");
   }
 
-  return data;
+  return data as T;
 }
 
 export function signup(username: string, password: string) {
-  return request<{
-    message: string;
-    data: {
-      id: number | string;
-      username: string;
-    };
-  }>("/NewUser_login", {
+  return request<AuthResponse>("/NewUser_login", {
     method: "POST",
     body: JSON.stringify({
       Username: username,
@@ -39,13 +33,7 @@ export function signup(username: string, password: string) {
 }
 
 export function login(username: string, password: string) {
-  return request<{
-    message: string;
-    data: {
-      id: number | string;
-      username: string;
-    };
-  }>("/Old_User_login", {
+  return request<AuthResponse>("/Old_User_login", {
     method: "POST",
     body: JSON.stringify({
       Username: username,
@@ -54,31 +42,17 @@ export function login(username: string, password: string) {
   });
 }
 
-export function PostQuestion(username: string, question: string, img_path: string) {
-  return request<{
-    message: string;
-    data: {
-      ai_questions: {
-        correct_option: number;
-        hint: string;
-        options: string[];
-        question: string;
-      }[];
-      error_message: string;
-      is_relevant: boolean;
-      user_question: {
-        correct_option: number;
-        hint: string;
-        options: string[];
-        question: string;
-      };
-    };
-  }>("/QuestionPost", {
+export function postQuestion(
+  username: string,
+  question: string,
+  imagePath = ""
+) {
+  return request<QuestionResponse>("/QuestionPost", {
     method: "POST",
     body: JSON.stringify({
       Username: username,
       Question: question,
-      ImagePath: img_path
+      Image_path: imagePath,
     }),
   });
 }

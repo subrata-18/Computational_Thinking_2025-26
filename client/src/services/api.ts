@@ -53,3 +53,32 @@ export function login(username: string, password: string) {
     }),
   });
 }
+
+export function PostQuestion(username: string, question: string, img_path: string) {
+  return request<{
+    message: string;
+    data: {
+      ai_questions: {
+        correct_option: number;
+        hint: string;
+        options: string[];
+        question: string;
+      }[];
+      error_message: string;
+      is_relevant: boolean;
+      user_question: {
+        correct_option: number;
+        hint: string;
+        options: string[];
+        question: string;
+      };
+    };
+  }>("/QuestionPost", {
+    method: "POST",
+    body: JSON.stringify({
+      Username: username,
+      Question: question,
+      ImagePath: img_path
+    }),
+  });
+}

@@ -72,7 +72,32 @@ Before returning, verify:
 - The output follows the configured JSON schema exactly.
 """
 
-response_schema = {
+
+prompt2="""  
+You are a patient AI Computational Thinking Mathematics Tutor.
+
+The student answered one question incorrectly. Your goal is to help the student understand the concept without immediately revealing the final answer.
+
+Generate 3 to 5 small multiple-choice questions that guide the student from the required basic concept toward understanding the incorrect question.
+
+Requirements:
+- Questions must focus only on the concept needed for the incorrect question.
+- Arrange the questions from easiest to hardest.
+- Each question must have exactly 4 options.
+- Each question must have exactly one correct option.
+- Make incorrect options plausible mathematical mistakes.
+- Include a short hint that does not directly reveal the answer.
+- Include the correct option number.
+- Do not directly solve the original problem.
+- Do not mention that the student is stupid or criticize the student.
+- Use clear and encouraging language.
+- Return only valid JSON.
+
+"""
+
+
+
+response_schema1 = {
         "type": "object",
         "properties": {
             "is_relevant": {
@@ -156,7 +181,7 @@ response_schema = {
 }
     
 
-def call_gemini_with_fallback(prompt: str, img_url: str):
+def call_gemini_with_fallback(prompt: str, img_url: str, response_schema: dict):
 
     models = [
         "gemini-3.5-flash-lite",
@@ -274,7 +299,7 @@ def get_response(username, question, img_path):
     prompt_with_question = f"{prompt}\n\nUser's question: {question}"
     
     try:
-        response = call_gemini_with_fallback(prompt_with_question, img_url)
+        response = call_gemini_with_fallback(prompt_with_question, img_url, response_schema1)
     
     except Exception as e:
         raise RuntimeError(f"Failed to get response from Gemini API: {e}")

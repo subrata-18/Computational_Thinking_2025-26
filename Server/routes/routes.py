@@ -153,6 +153,10 @@ def register_routes(app):
             },
         }, 200
         
+    # -------------------------
+    # POST QUESTION
+    # -------------------------
+        
     @app.route("/QuestionPost", methods=["POST"])
     def receive_Question_data():
         
@@ -179,6 +183,51 @@ def register_routes(app):
         username = question_data.get("Username")
         question = question_data.get("Question")
         img_path = question_data.get("Image_path")
+        
+        try: 
+            response = get_response(
+                username,
+                question,
+                img_path
+            )
+        except Exception as e:
+            return {
+                "error": f"Failed to get response from Gemini API: {e}"
+            }, 500
+            
+        return response, 200
+    
+    # -------------------------
+    # For the wrong answered question
+    # -------------------------
+    
+    
+    @app.route("/DoubtQuestionPost", methods=["POST"])
+    def receive_DoubtQuestion_data():
+        
+        doubt_question_data = request.get_json(silent=True) or {}
+        
+        if not isinstance(doubt_question_data, dict):
+            return {
+                "error": "Invalid JSON payload"
+            }, 400
+            
+        required_fields = {
+                    "Username",
+                    "Question",
+                    "Image_path"
+                }
+        
+        missing_fields = required_fields - doubt_question_data.keys()
+        
+        if missing_fields:
+            return {
+                "error": f"Missing fields: {sorted(missing_fields)}"
+            }, 400
+            
+        username = doubt_question_data.get("Username")
+        question = doubt_question_data.get("Question")
+        img_path = doubt_question_data.get("Image_path")
         
         try: 
             response = get_response(

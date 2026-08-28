@@ -58,7 +58,7 @@ The student should have enough knowledge and intermediate results after completi
 
 Do not reveal answers unnecessarily through hints. Hints should guide reasoning rather than directly give the answer.
 
-Match the difficulty and mathematical level of the original problem. The AI response must contain proper mathematical symbols like √(sqrt), π(pi), exponents etc and do not use unicode characters.
+Match the difficulty and mathematical level of the original problem. The AI response must contain proper mathematical symbols like √(sqrt), π(pi), exponents(²) etc and do not use unicode characters.
 
 Return ONLY valid JSON and follow the exact JSON structure/schema configured for this request. Do not add, remove, rename, or restructure fields. Do not include Markdown, code fences, explanations, or text outside the JSON.
 

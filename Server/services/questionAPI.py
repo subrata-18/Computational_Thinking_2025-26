@@ -179,6 +179,84 @@ response_schema1 = {
             "user_question"
         ]
 }
+
+
+response_schema2 = {
+    "type": "object",
+    "properties": {
+        "ai_questions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "question": {
+                        "type": "string"
+                    },
+                    "options": {
+                        "type": "array",
+                        "minItems": 4,
+                        "maxItems": 4,
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "hint": {
+                        "type": "string"
+                    },
+                    "correct_option": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 4
+                    },
+                    
+                },
+                "required": [
+                    "question",
+                    "options",
+                    "hint",
+                    "correct_option",
+                ]
+            }
+        },
+
+        "user_question": {
+            "type": "object",
+            "properties": {
+                "question": {
+                    "type": "string"
+                },
+                "options": {
+                    "type": "array",
+                    "minItems": 4,
+                    "maxItems": 4,
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "hint": {
+                    "type": "string"
+                },
+                "correct_option": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 4
+                },
+
+            },
+            "required": [
+                "question",
+                "options",
+                "hint",
+                "correct_option",
+            ]
+        }
+    },
+    "required": [
+        "ai_questions",
+        "user_question"
+    ]
+}
+
     
 
 def call_gemini_with_fallback(prompt: str, img_url: str, response_schema: dict):
@@ -306,6 +384,24 @@ def get_response(username, question, img_path):
         
     
     return response
+
+
+def get_Doubtresponse(username, WrongAnsweredquestion, QuestionArray):
+    
+    img_url = None  # No image for doubt questions
+        
+    prompt_with_question = f"{prompt2}\n\n {WrongAnsweredquestion}\n\nQuestion Array: {QuestionArray}" 
+    
+    try:
+        response = call_gemini_with_fallback(prompt_with_question, img_url, response_schema2)
+    
+    except Exception as e:
+        raise RuntimeError(f"Failed to get response from Gemini API: {e}")
+        
+    
+    return response
+
+
 
 
 

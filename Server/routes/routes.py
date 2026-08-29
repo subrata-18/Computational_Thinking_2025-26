@@ -12,6 +12,10 @@ def register_routes(app):
         return {
             "message": "Backend is running"
         }
+        
+    @app.route("/health", methods=["GET"])
+    def health():
+        return {"status": "ok"}, 200
 
     # -------------------------
     # CREATE NEW USER

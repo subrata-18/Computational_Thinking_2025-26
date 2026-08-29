@@ -8,7 +8,6 @@ from google import genai
 from google.genai import types
 from database.db import db
 from database.models import User
-from database.models import Question
 from dotenv import load_dotenv  
 from services.supabase_service import create_signedURL
 

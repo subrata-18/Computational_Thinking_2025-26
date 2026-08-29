@@ -194,6 +194,7 @@ def register_routes(app):
             return {
                 "error": f"Failed to get response from Gemini API: {e}"
             }, 500
+        print(username, question, img_path)
             
         return response, 200
     

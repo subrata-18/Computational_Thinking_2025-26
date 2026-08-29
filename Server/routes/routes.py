@@ -1,7 +1,8 @@
 from flask import request
 
 from services.user_services import create_user, login_user
-from services.questionAPI import get_response
+from services.questionAPI import get_Doubtresponse, get_response
+from services.score_services import add_ScoreDB
 
 
 def register_routes(app):
@@ -198,9 +199,9 @@ def register_routes(app):
             
         return response, 200
     
-    # -------------------------
+    # --------------------------------------
     # For the wrong answered question
-    # -------------------------
+    # --------------------------------------
     
     
     @app.route("/DoubtQuestionPost", methods=["POST"])
@@ -215,8 +216,8 @@ def register_routes(app):
             
         required_fields = {
                     "Username",
-                    "Question",
-                    "Image_path"
+                    "WrongAnsweredquestion",
+                    "QuestionJson"
                 }
         
         missing_fields = required_fields - doubt_question_data.keys()
@@ -227,14 +228,14 @@ def register_routes(app):
             }, 400
             
         username = doubt_question_data.get("Username")
-        question = doubt_question_data.get("Question")
-        img_path = doubt_question_data.get("Image_path")
-        
+        WrongAnsweredquestion = doubt_question_data.get("WrongAnsweredquestion")
+        QuestionJson = doubt_question_data.get("QuestionJson")
+
         try: 
-            response = get_response(
+            response = get_Doubtresponse(
                 username,
-                question,
-                img_path
+                WrongAnsweredquestion,
+                QuestionJson   
             )
         except Exception as e:
             return {
@@ -242,3 +243,56 @@ def register_routes(app):
             }, 500
             
         return response, 200
+    
+    # --------------------------------------
+    # For getting the Score after the quiz
+    # --------------------------------------
+    
+    @app.route("/ScorePost", methods=["POST"])
+    def receive_Score_data():
+        
+        score_data = request.get_json(silent=True) or {}
+        
+        if not isinstance(score_data, dict):
+            return {
+                "error": "Invalid JSON payload"
+            }, 400
+            
+        required_fields = {
+                    "Username",
+                    "QuestionJson",
+                    "wrong_answered_questions",
+                    "Score"
+                }
+        
+        missing_fields = required_fields - score_data.keys()
+        
+        if missing_fields:
+            return {
+                "error": f"Missing fields: {sorted(missing_fields)}"
+            }, 400
+            
+        username = score_data.get("Username")
+        QuestionJson = score_data.get("QuestionJson")
+        Score = score_data.get("Score")
+        wrong_answered_questions = score_data.get("wrong_answered_questions")
+        try:
+            add_ScoreDB(
+                username,
+                QuestionJson,
+                wrong_answered_questions,
+                Score
+            )
+        except Exception as e:
+            return {
+                "error": f"Failed to add score entry: {e}"
+            }, 500
+        
+        return {
+            "message": "Score entry added successfully"
+        }, 200
+
+        
+        
+        
+        

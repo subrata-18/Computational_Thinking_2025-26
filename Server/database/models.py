@@ -8,15 +8,15 @@ class User(db.Model):
 	username = db.Column(db.String(80), nullable=False, unique=True)
 	password = db.Column(db.String(255), nullable=False)
 
-	def __repr__(self):
-		return f"<User {self.username}>"
 
-class Question(db.Model):
-	__tablename__ = "questions"
+
+class QuestionsNScore(db.Model):
+	__tablename__ = "questionsNScore"
 
 	id = db.Column(db.Integer, primary_key=True)
 	username = db.Column(db.String(80), nullable=False)
-	question_text = db.Column(db.Text, nullable=False)
-	question_img = db.Column(db.String(255), nullable=True)
+	user_question = db.Column(db.Text, nullable=False)
 	ai_questions = db.Column(db.Text, nullable=False)
 	ai_answers = db.Column(db.Text, nullable=False)
+	wrong_answered_question = db.Column(db.Text, nullable=True)
+	score = db.Column(db.String(80), nullable=True)

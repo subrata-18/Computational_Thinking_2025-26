@@ -386,11 +386,11 @@ def get_response(username, question, img_path):
     return response
 
 
-def get_Doubtresponse(username, WrongAnsweredquestion, QuestionArray):
+def get_Doubtresponse(username, WrongAnsweredquestion, QuestionJson):
     
     img_url = None  # No image for doubt questions
         
-    prompt_with_question = f"{prompt2}\n\n {WrongAnsweredquestion}\n\nQuestion Array: {QuestionArray}" 
+    prompt_with_question = f"{prompt2}\n\n {WrongAnsweredquestion}\n\nQuestion Array: {QuestionJson}" 
     
     try:
         response = call_gemini_with_fallback(prompt_with_question, img_url, response_schema2)

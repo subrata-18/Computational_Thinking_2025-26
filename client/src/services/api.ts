@@ -104,6 +104,18 @@ export function postQuestion(
   question: string,
   imagePath = "",
 ): Promise<QuestionResponse> {
+  const allowedTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/heic",
+    "image/heif",
+  ];
+
+  if (!imagePath || !allowedTypes.includes(imagePath.split("/")[imagePath.split("/").length - 1])) {
+    throw new ApiError("Invalid image path or type.");
+  }
+
   return request<QuestionResponse>("/QuestionPost", {
     method: "POST",
     body: JSON.stringify({

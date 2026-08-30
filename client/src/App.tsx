@@ -273,6 +273,8 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
   const [learnQuestions, setLearnQuestions] = useState<Question[]>([]);
   const [learnError, setLearnError] = useState("");
   const [learnLoadingIndex, setLearnLoadingIndex] = useState<number | null>(null);
+  const [learnScore, setLearnScore] = useState(0);
+  const [showLearnResult, setShowLearnResult] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -306,6 +308,8 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
     setLearnAnswers({});
     setLearnCurrent(0);
     setLearnLoadingIndex(null);
+    setLearnScore(0);
+    setShowLearnResult(false);
     setQuote(quotes[Math.floor(Math.random() * quotes.length)]);
     setStage("home");
   }
@@ -464,6 +468,8 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
       setLearnQuestions(response.ai_questions);
       setLearnAnswers({});
       setLearnCurrent(0);
+      setLearnScore(0);
+      setShowLearnResult(false);
       setShowHint(false);
       setLearnError("");
       setStage("learnAgain");
@@ -486,6 +492,12 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
       setShowHint(false);
       return;
     }
+    const finalLearnScore = learnQuestions.reduce(
+      (total, item, index) => total + (learnAnswers[index] === item.correct_option ? 1 : 0),
+      0,
+    );
+    setLearnScore(finalLearnScore);
+    setShowLearnResult(true);
     setShowHint(false);
     setStage("result");
   }
@@ -501,6 +513,16 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
       correct: answers[index] === question.correct_option,
     })),
     [answers, questions],
+  );
+
+  const learnReview = useMemo(
+    () => learnQuestions.map((question, index) => ({
+      question,
+      index,
+      selected: learnAnswers[index] ?? null,
+      correct: learnAnswers[index] === question.correct_option,
+    })),
+    [learnAnswers, learnQuestions],
   );
 
   return (
@@ -586,6 +608,13 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
               loadingIndex={learnLoadingIndex}
               onLearnAgain={learnAgain}
             />
+
+            {showLearnResult && learnQuestions.length > 0 && (
+              <LearnAgainResult
+                score={learnScore}
+                review={learnReview}
+              />
+            )}
 
             <button className="primary result-next" onClick={startOriginal}>Try Original Question</button>
           </div>
@@ -851,6 +880,77 @@ function QuestionReview({
             )}
           </article>
         ))}
+      </div>
+    </section>
+  );
+}
+
+function LearnAgainResult({
+  score,
+  review,
+}: {
+  score: number;
+  review: ReviewItem[];
+}) {
+  const incorrect = review.length - score;
+  const percentage = review.length ? Math.round((score / review.length) * 100) : 0;
+
+  return (
+    <section className="learn-result-section" aria-labelledby="learn-result-title">
+      <div className="learn-result-card">
+        <span className="eyebrow">Learn Again Result</span>
+        <h2 id="learn-result-title">Concept Practice Complete</h2>
+        <div className="learn-score">{score} / {review.length}</div>
+        <p>{percentage}% correct</p>
+
+        <div className="learn-stats" aria-label="Learn Again score breakdown">
+          <div className="learn-stat">
+            <span className="learn-stat-value">{score}</span>
+            <span>Correct</span>
+          </div>
+          <div className="learn-stat">
+            <span className="learn-stat-value">{incorrect}</span>
+            <span>Incorrect</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="learn-review">
+        <div className="review-heading">
+          <div>
+            <span className="eyebrow">Answer key</span>
+            <h2>Learn Again Answers</h2>
+          </div>
+          <span className="review-count">{review.length} questions</span>
+        </div>
+
+        <div className="review-list">
+          {review.map((item) => (
+            <article className="review-item learn-review-item" key={item.index}>
+              <div
+                className={`review-status ${item.correct ? "correct" : "incorrect"}`}
+                aria-label={item.correct ? "Correct" : "Incorrect"}
+              >
+                {item.correct ? "✓" : "×"}
+              </div>
+
+              <div className="review-content">
+                <div className="review-number">Question {item.index + 1}</div>
+                <div className="review-question">{item.question.question}</div>
+                <div className="review-answer">
+                  Your answer: <strong>
+                    {item.selected != null
+                      ? item.question.options[item.selected - 1]
+                      : "Not answered"}
+                  </strong>
+                  {!item.correct && (
+                    <> · Right answer: <strong>{item.question.options[item.question.correct_option - 1]}</strong></>
+                  )}
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   );

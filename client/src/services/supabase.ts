@@ -14,7 +14,11 @@ export async function uploadQuestionImage(file: File): Promise<string> {
   }
 
   const extension = file.name.split(".").pop()?.toLowerCase() ?? "png";
-  const filePath = `CT_images/${crypto.randomUUID()}.${extension}`;
+  const uuid =
+    typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const filePath = `CT_images/${uuid}.${extension}`;
   const encodedPath = filePath.split("/").map(encodeURIComponent).join("/");
   const uploadUrl = `${supabaseUrl}/storage/v1/object/${encodeURIComponent(SUPABASE_BUCKET)}/${encodedPath}`;
 
@@ -25,7 +29,7 @@ export async function uploadQuestionImage(file: File): Promise<string> {
       headers: {
         apikey: supabaseKey,
         Authorization: `Bearer ${supabaseKey}`,
-        "Content-Type": file.type,
+        "Content-Type": file.type || "application/octet-stream",
         "x-upsert": "false",
       },
       body: file,
@@ -35,7 +39,20 @@ export async function uploadQuestionImage(file: File): Promise<string> {
   }
 
   if (!response.ok) {
-    throw new Error("Image upload failed. Please try again.");
+    const errorText = await response.text();
+    console.error("Supabase upload failed:", response.status, errorText);
+
+    let errorMessage = errorText;
+    try {
+      const errorData = JSON.parse(errorText) as { message?: string; error?: string };
+      errorMessage = errorData.message || errorData.error || errorText;
+    } catch {
+      // Keep the plain response when Supabase does not return JSON.
+    }
+
+    throw new Error(
+      `Image upload failed (${response.status}): ${errorMessage || "Unknown Supabase error"}`,
+    );
   }
 
   return filePath;

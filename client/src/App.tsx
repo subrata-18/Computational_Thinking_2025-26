@@ -315,9 +315,21 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
     event.target.value = "";
     if (!file) return;
 
-    const allowedTypes = ["image/jpeg", "image/png"];
-    if (!allowedTypes.includes(file.type)) {
-      setError("Only JPG, JPEG and PNG images are supported.");
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/heic",
+      "image/heif",
+    ];
+    const fileExtension = file.name.split(".").pop()?.toLowerCase();
+    const allowedExtensions = ["jpg", "jpeg", "png", "webp", "heic", "heif"];
+    if (
+      (file.type && !allowedTypes.includes(file.type)) ||
+      (!file.type && !fileExtension) ||
+      (fileExtension && !allowedExtensions.includes(fileExtension))
+    ) {
+      setError("Please choose a JPG, PNG, WEBP, HEIC or HEIF image.");
       return;
     }
     if (file.size > MAX_IMAGE_SIZE) {
@@ -683,7 +695,7 @@ function Composer({
         📎
         <input
           type="file"
-          accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+          accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.heif"
           hidden
           onChange={onImage}
           disabled={disabled}

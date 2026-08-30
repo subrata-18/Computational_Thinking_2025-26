@@ -839,14 +839,16 @@ function QuestionReview({
                 </div>
               )}
             </div>
-            <button
-              type="button"
-              className="secondary learn-button"
-              onClick={() => onLearnAgain(item.question, item.index)}
-              disabled={loadingIndex !== null}
-            >
-              {loadingIndex === item.index ? "Preparing..." : "Learn Again"}
-            </button>
+            {!item.correct && (
+              <button
+                type="button"
+                className="secondary learn-button"
+                onClick={() => onLearnAgain(item.question, item.index)}
+                disabled={loadingIndex !== null}
+              >
+                {loadingIndex === item.index ? "Preparing..." : "Learn Again"}
+              </button>
+            )}
           </article>
         ))}
       </div>

@@ -12,5 +12,9 @@ jobs:
     steps:
       - name: Ping Render server
         run: |
-          curl --fail --max-time 30 \
+          curl --fail \
+            --retry 3 \
+            --retry-delay 10 \
+            --retry-all-errors \
+            --max-time 120 \
             https://computational-thinking-2025-26.onrender.com/health

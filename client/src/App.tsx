@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { login, postDoubtQuestion, postQuestion, signup } from "./services/api";
+import { login, postDoubtQuestion, postQuestion, postScore, signup } from "./services/api";
 import { uploadQuestionImage } from "./services/supabase";
 import type { LearnAgainResponse, Question, QuestionResponse, User } from "./types";
 import "./App.css";
@@ -412,9 +412,25 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
       (total, item, index) => total + (answers[index] === item.correct_option ? 1 : 0),
       0,
     );
+    const wrongAnsweredQuestions = questions
+      .filter((item, index) => answers[index] !== item.correct_option)
+      .map((item) => item.question)
+      .join(", ");
+
     setScore(finalScore);
     setShowHint(false);
     setStage("result");
+
+    if (sessionResponse) {
+      void postScore(
+        user.username,
+        JSON.stringify(sessionResponse),
+        wrongAnsweredQuestions,
+        `${finalScore}/${questions.length}`,
+      ).catch(() => {
+        // Saving the score should not prevent the result from being shown.
+      });
+    }
   }
 
   function nextQuestion() {

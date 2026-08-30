@@ -114,6 +114,23 @@ export function postQuestion(
   });
 }
 
+export function postScore(
+  username: string,
+  questionJson: string,
+  wrongAnsweredQuestions: string,
+  score: string,
+): Promise<{ message: string }> {
+  return request<{ message: string }>("/ScorePost", {
+    method: "POST",
+    body: JSON.stringify({
+      Username: username,
+      QuestionJson: questionJson,
+      wrong_answered_questions: wrongAnsweredQuestions,
+      Score: score,
+    }),
+  });
+}
+
 export function postDoubtQuestion(
   username: string,
   wrongAnsweredQuestion: string,

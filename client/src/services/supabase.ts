@@ -14,8 +14,9 @@ export async function uploadQuestionImage(file: File): Promise<string> {
   }
 
   const extension = file.name.split(".").pop()?.toLowerCase() ?? "png";
-  const filename = `${crypto.randomUUID()}.${extension}`;
-  const uploadUrl = `${supabaseUrl}/storage/v1/object/${encodeURIComponent(SUPABASE_BUCKET)}/${encodeURIComponent(filename)}`;
+  const filePath = `CT_images/${crypto.randomUUID()}.${extension}`;
+  const encodedPath = filePath.split("/").map(encodeURIComponent).join("/");
+  const uploadUrl = `${supabaseUrl}/storage/v1/object/${encodeURIComponent(SUPABASE_BUCKET)}/${encodedPath}`;
 
   let response: Response;
   try {
@@ -37,9 +38,5 @@ export async function uploadQuestionImage(file: File): Promise<string> {
     throw new Error("Image upload failed. Please try again.");
   }
 
-  // The object was uploaded to the root of the configured bucket, so the
-  // path expected by the Flask server is the generated filename itself.
-
-
-  return filename;
+  return filePath;
 }

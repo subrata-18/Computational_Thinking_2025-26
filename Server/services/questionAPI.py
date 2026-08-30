@@ -282,6 +282,7 @@ def call_gemini_with_fallback(prompt: str, img_url: str, response_schema: dict):
 
             supported_mime_types = {
                 "image/jpeg",
+                "image/jpg",
                 "image/png",
                 "image/webp",
                 "image/heic",

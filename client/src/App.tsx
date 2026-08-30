@@ -255,6 +255,7 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
   const [quote, setQuote] = useState(() => quotes[Math.floor(Math.random() * quotes.length)]);
   const [questionText, setQuestionText] = useState("");
   const [image, setImage] = useState<File | null>(null);
+  const [imagePath, setImagePath] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("Understanding your question...");
@@ -281,6 +282,7 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
 
   function removeImage() {
     setImage(null);
+    setImagePath("");
     setImagePreview((previous) => {
       if (previous) URL.revokeObjectURL(previous);
       return null;
@@ -308,7 +310,7 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
     setStage("home");
   }
 
-  function selectImage(event: React.ChangeEvent<HTMLInputElement>) {
+  async function selectImage(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
@@ -327,6 +329,17 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
     removeImage();
     setImage(file);
     setImagePreview(URL.createObjectURL(file));
+
+    setImageUploading(true);
+    try {
+      const uploadedPath = await uploadQuestionImage(file);
+      setImagePath(uploadedPath);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Image upload failed. Please try again.");
+      removeImage();
+    } finally {
+      setImageUploading(false);
+    }
   }
 
   async function submitQuestion() {
@@ -342,14 +355,6 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
     setStage("loading");
 
     try {
-      let imagePath = "";
-      if (image) {
-        setImageUploading(true);
-        setLoadingMessage("Uploading image...");
-        imagePath = await uploadQuestionImage(image);
-        setImageUploading(false);
-      }
-
       setLoadingMessage("Understanding your question...");
       await new Promise<void>((resolve) => window.setTimeout(resolve, 100));
       setLoadingMessage("Generating a personalized practice session...");
@@ -520,9 +525,13 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
                 onChange={setQuestionText}
                 onSubmit={submitQuestion}
                 onImage={selectImage}
-                disabled={false}
+                disabled={imageUploading}
               />
-              {image && <p className="attachment-name">{image.name}</p>}
+              {image && (
+                <p className="attachment-name">
+                  {imageUploading ? "Uploading image..." : image.name}
+                </p>
+              )}
             </div>
           </div>
         )}

@@ -21,3 +21,20 @@ export type QuestionResponse = {
   ai_questions: Question[];
   user_question: Question;
 };
+
+export type QuizAnswer = {
+  questionIndex: number;
+  selectedOption: number;
+  correct: boolean;
+};
+
+export type QuizResult = {
+  score: number;
+  total: number;
+  percentage: number;
+};
+
+export type LearnAgainResponse = {
+  ai_questions: Question[];
+  user_question: Question;
+};

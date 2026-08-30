@@ -1,75 +1,55 @@
-# React + TypeScript + Vite
+# Nova AI — V1 Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript + Vite frontend for the supplied Nova AI Flask backend.
 
-Currently, two official plugins are available:
+## Run
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+cd client
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+From this directory:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm run build
+npm run lint
 ```
+
+## Environment
+
+Copy `.env.example` to `.env` and configure:
+
+```env
+VITE_API_URL=https://computational-thinking-2025-26.onrender.com
+VITE_SUPABASE_URL=
+VITE_SUPABASE_PUBLISHABLE_KEY=
+VITE_SUPABASE_BUCKET=Images
+```
+
+Only browser-safe Supabase credentials belong in Vite environment variables. Never put `DATABASE_URL`, `SUPABASE_SECRET_KEY`, Gemini/API secrets, or other private credentials in the client.
+
+## Backend contract used
+
+The frontend was implemented against the routes found in the supplied Flask server:
+
+- `POST /NewUser_login` — `{ Username, NewPassword }`
+- `POST /Old_User_login` — `{ Username, Password }`
+- `POST /QuestionPost` — `{ Username, Question, Image_path }`
+- `POST /DoubtQuestionPost` — `{ Username, WrongAnsweredquestion, QuestionJson }`
+- `POST /ScorePost` exists on the server but is intentionally not called because V1 does not require persistence of quiz scores.
+
+The server's question schema uses `correct_option` values `1` through `4`; the frontend preserves that mapping.
+
+`is_relevant` is validated as a top-level response property. Relevant responses require a valid `ai_questions` array and `user_question`; malformed responses are shown as user-friendly errors rather than rendered.
+
+## Image uploads
+
+The supplied server expects `Image_path` and its server-side Supabase service signs paths from the `Images` bucket. The frontend validates JPG/JPEG/PNG images, limits them to 10 MB, creates a UUID filename, uploads to the configured Supabase Storage bucket using the browser-safe publishable key, and sends the resulting storage path to `/QuestionPost`.
+
+The backend does not expose a dedicated difficulty parameter. Therefore **Learn Again** uses the supplied `/DoubtQuestionPost` contract and lets the backend determine the new practice level; the frontend does not fabricate easier questions.
+
+## Session
+
+The frontend stores only `id` and `username` in localStorage. Passwords are never stored.

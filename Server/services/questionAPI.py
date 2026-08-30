@@ -256,6 +256,8 @@ response_schema2 = {
     ]
 }
 
+
+
     
 
 def call_gemini_with_fallback(prompt: str, img_url: str, response_schema: dict):
@@ -335,12 +337,15 @@ def call_gemini_with_fallback(prompt: str, img_url: str, response_schema: dict):
                     print(
                         f"Success: key {key_index}, model {model}"
                     )
+                    print(f"Pahrased response is returned")
+
                     return response.parsed
 
                 if response.text:
                     print(
                         f"Success: key {key_index}, model {model}"
                     )
+                    print(f"Text response is returned:")
                     return json.loads(response.text)
 
                 raise RuntimeError(

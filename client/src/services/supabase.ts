@@ -40,7 +40,6 @@ export async function uploadQuestionImage(file: File): Promise<string> {
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error("Supabase upload failed:", response.status, errorText);
 
     let errorMessage = errorText;
     try {

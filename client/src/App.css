@@ -877,19 +877,38 @@ button:focus-visible, input:focus-visible {
     gap: 10px;
   }
 
+  /*
+   * Mobile review layout
+   * Keep the status icon, question content, and Learn Again button
+   * in separate grid areas so the question gets the full available width.
+   */
   .review-item {
-    align-items: flex-start;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr);
+    align-items: start;
+    column-gap: 10px;
+    row-gap: 8px;
+  }
+
+  .review-status {
+    grid-column: 1;
+    grid-row: 1;
   }
 
   .review-content {
-    flex-basis: calc(100% - 40px);
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    min-width: 0;
+    flex: none;
   }
 
   .learn-button {
+    grid-column: 2;
+    grid-row: 2;
     width: 100%;
-    margin-left: 40px;
-    margin-top: 2px;
+    margin: 0;
+    min-height: 40px;
   }
 
   .learn-result-card {
@@ -1039,5 +1058,24 @@ input {
 
   .review-item {
     width: 100%;
+    grid-template-columns: 28px minmax(0, 1fr);
+    column-gap: 9px;
+    padding: 12px;
+  }
+
+  .review-status {
+    width: 28px;
+    height: 28px;
+    flex-basis: 28px;
+  }
+
+  .learn-button {
+    min-height: 40px;
+    padding: 9px 10px;
+  }
+
+  .review-question {
+    overflow-wrap: break-word;
   }
 }
+

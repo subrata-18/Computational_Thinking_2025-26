@@ -41,7 +41,18 @@ export async function uploadQuestionImage(file: File): Promise<string> {
   if (!response.ok) {
     const errorText = await response.text();
     console.error("Supabase upload failed:", response.status, errorText);
-    throw new Error(`Image upload failed (${response.status}). Please try again.`);
+
+    let errorMessage = errorText;
+    try {
+      const errorData = JSON.parse(errorText) as { message?: string; error?: string };
+      errorMessage = errorData.message || errorData.error || errorText;
+    } catch {
+      // Keep the plain response when Supabase does not return JSON.
+    }
+
+    throw new Error(
+      `Image upload failed (${response.status}): ${errorMessage || "Unknown Supabase error"}`,
+    );
   }
 
   return filePath;

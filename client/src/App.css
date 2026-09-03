@@ -772,19 +772,32 @@ button:focus-visible, input:focus-visible {
     display: flex;
   }
 
+  .app-shell::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 45;
+    height: 54px;
+    border-bottom: 1px solid rgba(41, 41, 45, .75);
+    background: rgba(11, 11, 12, .72);
+    backdrop-filter: blur(14px);
+  }
+
   .sidebar-toggle,
   .sidebar-closed .sidebar-toggle {
-    top: 10px;
+    top: 8px;
     left: 12px;
   }
 
   .sidebar-open .sidebar-toggle {
-    left: min(254px, calc(100vw - 54px));
+    left: 12px;
   }
 
   .sidebar-backdrop {
     position: fixed;
-    inset: 0;
+    inset: 54px 0 0;
     z-index: 35;
     display: block;
     border: 0;
@@ -794,11 +807,11 @@ button:focus-visible, input:focus-visible {
 
   .sidebar {
     position: fixed;
-    inset: 0 auto 0 0;
+    inset: 54px auto 0 0;
     z-index: 40;
     width: min(280px, calc(100vw - 64px));
-    height: 100vh;
-    padding: 58px 12px 12px;
+    height: calc(100vh - 54px);
+    padding: 12px;
     border-right: 1px solid var(--border);
     border-bottom: 0;
     flex-direction: column;
@@ -810,7 +823,7 @@ button:focus-visible, input:focus-visible {
 
   .sidebar-closed .sidebar {
     width: min(280px, calc(100vw - 64px));
-    padding: 58px 12px 12px;
+    padding: 12px;
     border-right-color: var(--border);
     transform: translateX(-105%);
   }
@@ -863,7 +876,7 @@ button:focus-visible, input:focus-visible {
     width: 100%;
     height: 100vh;
     min-height: 100vh;
-    padding: 64px 14px 22px;
+    padding: 76px 14px 22px;
     align-items: flex-start;
   }
 

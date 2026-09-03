@@ -340,6 +340,7 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
     setShowLearnResult(false);
     setQuote(quotes[Math.floor(Math.random() * quotes.length)]);
     setStage("home");
+    window.location.reload();
   }
 
   async function viewHistoryItem(historyId: number) {

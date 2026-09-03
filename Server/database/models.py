@@ -20,3 +20,4 @@ class QuestionsNScore(db.Model):
 	ai_answers = db.Column(db.Text, nullable=False)
 	wrong_answered_question = db.Column(db.Text, nullable=True)
 	score = db.Column(db.String(80), nullable=True)
+	remarks = db.Column(db.Text, nullable=True) 

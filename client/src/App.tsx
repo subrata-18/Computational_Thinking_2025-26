@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { login, postDoubtQuestion, postQuestion, postScore, signup } from "./services/api";
+import { login, postDoubtQuestion, postQuestion, postScore, signup, getUserHistory, getHistoryDetail } from "./services/api";
 import { uploadQuestionImage } from "./services/supabase";
-import type { LearnAgainResponse, Question, QuestionResponse, User } from "./types";
+import type { LearnAgainResponse, Question, QuestionResponse, User, HistoryEntry, HistoryDetail } from "./types";
 import "./App.css";
 
 type Page = "landing" | "login" | "signup" | "app";
-type Stage = "home" | "loading" | "quiz" | "result" | "learnAgain" | "original" | "evaluation";
+type Stage = "home" | "loading" | "quiz" | "result" | "learnAgain" | "original" | "evaluation" | "history_view";
 
 type StoredSession = {
   id: number | string;
@@ -14,6 +14,7 @@ type StoredSession = {
 
 const SESSION_KEY = "nova_ai_session";
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+const DESKTOP_SIDEBAR_QUERY = "(min-width: 701px)";
 
 const quotes = [
   "Every expert was once a beginner.",
@@ -251,6 +252,9 @@ function Auth({
 }
 
 function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
+  const [sidebarOpen, setSidebarOpen] = useState(() => (
+    typeof window === "undefined" ? true : window.matchMedia(DESKTOP_SIDEBAR_QUERY).matches
+  ));
   const [stage, setStage] = useState<Stage>("home");
   const [quote, setQuote] = useState(() => quotes[Math.floor(Math.random() * quotes.length)]);
   const [questionText, setQuestionText] = useState("");
@@ -275,12 +279,36 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
   const [learnLoadingIndex, setLearnLoadingIndex] = useState<number | null>(null);
   const [learnScore, setLearnScore] = useState(0);
   const [showLearnResult, setShowLearnResult] = useState(false);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [currentHistoryDetail, setCurrentHistoryDetail] = useState<HistoryDetail | null>(null);
 
   useEffect(() => {
     return () => {
       if (imagePreview) URL.revokeObjectURL(imagePreview);
     };
   }, [imagePreview]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(DESKTOP_SIDEBAR_QUERY);
+    const syncSidebar = (event: MediaQueryListEvent) => setSidebarOpen(event.matches);
+
+    mediaQuery.addEventListener("change", syncSidebar);
+    return () => mediaQuery.removeEventListener("change", syncSidebar);
+  }, []);
+
+  useEffect(() => {
+    // Load history when component mounts
+    async function loadHistory() {
+      try {
+        const response = await getUserHistory(user.username);
+        setHistory(response.data);
+      } catch (err) {
+        // History loading error - silently fail, not critical to user experience
+        console.error("Failed to load history:", err);
+      }
+    }
+    void loadHistory();
+  }, [user.username]);
 
   function removeImage() {
     setImage(null);
@@ -312,6 +340,20 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
     setShowLearnResult(false);
     setQuote(quotes[Math.floor(Math.random() * quotes.length)]);
     setStage("home");
+  }
+
+  async function viewHistoryItem(historyId: number) {
+    try {
+      setStage("loading");
+      setLoadingMessage("Loading your history...");
+      
+      const response = await getHistoryDetail(user.username, historyId);
+      setCurrentHistoryDetail(response.data);
+      setStage("history_view");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load history detail");
+      setStage("home");
+    }
   }
 
   async function selectImage(event: React.ChangeEvent<HTMLInputElement>) {
@@ -542,10 +584,52 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
   );
 
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
+    <div className={`app-shell ${sidebarOpen ? "sidebar-open" : "sidebar-closed"}`}>
+      <button
+        type="button"
+        className={`sidebar-toggle ${sidebarOpen ? "is-open" : ""}`}
+        onClick={() => setSidebarOpen((value) => !value)}
+        aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+        aria-expanded={sidebarOpen}
+      >
+        <span />
+        <span />
+        <span />
+      </button>
+
+      {sidebarOpen && (
+        <button
+          type="button"
+          className="sidebar-backdrop"
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Close sidebar"
+        />
+      )}
+
+      <aside className="sidebar" aria-hidden={!sidebarOpen}>
         <div className="brand">nova ai</div>
         <button className="new-chat" onClick={newChat}>＋ New Chat</button>
+        
+        {/* History Section */}
+        {history.length > 0 && (
+          <div className="history-section">
+            <div className="history-title">Chat History</div>
+            <div className="history-list">
+              {history.map((item) => (
+                <button
+                  key={item.id}
+                  className="history-item"
+                  onClick={() => viewHistoryItem(item.id)}
+                  title={item.user_question}
+                >
+                  <span className="history-question">{item.user_question.substring(0, 30)}{item.user_question.length > 30 ? "..." : ""}</span>
+                  <span className="history-score">{item.score}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        
         <div className="sidebar-bottom">
           <div className="username" title={user.username}>{user.username}</div>
           <button className="logout" onClick={onLogout}>Log out</button>
@@ -681,16 +765,48 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
               <>
                 <div className="result-icon">✓</div>
                 <h1>Correct! 🎉</h1>
+                <p>
+                  Correct answer:{" "}
+                  <strong>{originalQuestion.options[originalQuestion.correct_option - 1]}</strong>
+                </p>
                 <p>You understood the concept.</p>
               </>
             ) : (
               <>
                 <div className="result-icon">×</div>
                 <h1>Not quite.</h1>
+                <p>
+                  Correct answer:{" "}
+                  <strong>{originalQuestion.options[originalQuestion.correct_option - 1]}</strong>
+                </p>
                 <p>Review the concept and try again.</p>
               </>
             )}
             <button className="primary" onClick={newChat}>Start New Chat</button>
+          </div>
+        )}
+
+        {stage === "history_view" && currentHistoryDetail && (
+          <div className="result-page history-result">
+            <div className="result-card">
+              <span className="eyebrow">History Entry</span>
+              <h1>Quiz Result</h1>
+              <div className="score">{currentHistoryDetail.score}</div>
+              <div className="progress-track" aria-label="Score display">
+                <div style={{ width: `${(() => {
+                  const parts = currentHistoryDetail.score.split('/');
+                  return parts.length === 2 ? Math.round((parseInt(parts[0]) / parseInt(parts[1])) * 100) : 0;
+                })()}%` }} />
+              </div>
+              <p>{(() => {
+                const parts = currentHistoryDetail.score.split('/');
+                return parts.length === 2 ? Math.round((parseInt(parts[0]) / parseInt(parts[1])) * 100) : 0;
+              })()}% Correct</p>
+            </div>
+
+            <HistoryReview historyDetail={currentHistoryDetail} />
+
+            <button className="primary result-next" onClick={newChat}>Back to Home</button>
           </div>
         )}
       </main>
@@ -967,6 +1083,103 @@ function LearnAgainResult({
             </article>
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+
+function HistoryReview({ historyDetail }: { historyDetail: HistoryDetail }) {
+  // Parse AI questions and answers from stored JSON strings
+  let aiQuestionsList: string[] = [];
+  let aiAnswersList: string[] = [];
+
+  try {
+    // Try parsing as JSON first (new format)
+    aiQuestionsList = JSON.parse(historyDetail.ai_questions);
+    if (!Array.isArray(aiQuestionsList)) aiQuestionsList = [];
+  } catch {
+    // Fallback to comma-separated parsing (legacy format)
+    aiQuestionsList = historyDetail.ai_questions
+      .split(", ")
+      .map((q) => q.trim())
+      .filter((q) => q.length > 0);
+  }
+
+  try {
+    // Try parsing as JSON first (new format)
+    aiAnswersList = JSON.parse(historyDetail.ai_answers);
+    if (!Array.isArray(aiAnswersList)) aiAnswersList = [];
+  } catch {
+    // Fallback to comma-separated parsing (legacy format)
+    aiAnswersList = historyDetail.ai_answers
+      .split(", ")
+      .map((a) => a.trim())
+      .filter((a) => a.length > 0);
+  }
+
+  const wrongQuestions = historyDetail.wrong_answered_question
+    ? historyDetail.wrong_answered_question
+        .split(", ")
+        .map((q) => q.trim())
+        .filter((q) => q.length > 0)
+    : [];
+
+  // Parse score to get total questions
+  const scoreParts = historyDetail.score.split("/");
+  const totalQuestions = scoreParts.length === 2 ? parseInt(scoreParts[1]) : aiQuestionsList.length;
+
+  // Ensure answer list matches question list length
+  const answersWithFallback = aiQuestionsList.map((_, index) => aiAnswersList[index] || "Not recorded");
+
+  return (
+    <section className="review-section history-review-section" aria-labelledby="history-review-title">
+      <div className="review-heading">
+        <div>
+          <span className="eyebrow">Your Question</span>
+          <h2 id="history-review-title">Question & Answer Review</h2>
+        </div>
+      </div>
+
+      {/* User Question */}
+      <div className="user-question-section">
+        <div className="review-item user-question-review">
+          <div className="review-content">
+            <div className="review-label">Your Original Question</div>
+            <div className="review-question">{historyDetail.user_question}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* AI Generated Questions and Answers */}
+      <div className="review-heading" style={{ marginTop: "2rem" }}>
+        <div>
+          <span className="eyebrow">Practice Questions</span>
+          <h3>Generated Questions & Your Responses</h3>
+        </div>
+        <span className="review-count">{totalQuestions} questions</span>
+      </div>
+
+      <div className="review-list">
+        {aiQuestionsList.map((question, index) => {
+          const isWrong = wrongQuestions.some((wq) => question.includes(wq) || wq.includes(question.substring(0, 30)));
+          return (
+            <article className="review-item history-review-item" key={index}>
+              <div
+                className={`review-status ${isWrong ? "incorrect" : "correct"}`}
+                aria-label={isWrong ? "Incorrect" : "Correct"}
+              >
+                {isWrong ? "×" : "✓"}
+              </div>
+              <div className="review-content">
+                <div className="review-number">Question {index + 1}</div>
+                <div className="review-question">{question}</div>
+                <div className="review-answer">
+                  Correct answer: <strong>{answersWithFallback[index]}</strong>
+                </div>
+              </div>
+            </article>
+          );
+        })}
       </div>
     </section>
   );

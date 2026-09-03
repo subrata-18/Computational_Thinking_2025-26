@@ -3,6 +3,7 @@ from flask import request
 from services.user_services import create_user, login_user
 from services.questionAPI import get_Doubtresponse, get_response
 from services.score_services import add_ScoreDB
+from services.history_services import get_user_history, get_history_detail
 
 
 def register_routes(app):
@@ -296,6 +297,111 @@ def register_routes(app):
         }, 200
 
         
+    # -------------------------
+    # GET USER CHAT HISTORY
+    # -------------------------
+    
+    @app.route("/GetUserHistory", methods=["POST"])
+    def get_user_history_data():
+        
+        history_request = request.get_json(silent=True) or {}
+        
+        if not isinstance(history_request, dict):
+            return {
+                "error": "Invalid JSON payload"
+            }, 400
+            
+        required_fields = {"Username"}
+        
+        missing_fields = required_fields - history_request.keys()
+        
+        if missing_fields:
+            return {
+                "error": f"Missing fields: {sorted(missing_fields)}"
+            }, 400
+            
+        username = history_request.get("Username")
+        
+        if not isinstance(username, str):
+            return {
+                "error": "Username must be a string"
+            }, 400
+        
+        try:
+            history_data, error = get_user_history(username)
+            
+            if error:
+                return {
+                    "error": error
+                }, 500
+            
+            return {
+                "message": "History retrieved successfully",
+                "data": history_data
+            }, 200
+        except Exception as e:
+            return {
+                "error": f"Failed to retrieve history: {e}"
+            }, 500
+
+
+    # -------------------------
+    # GET HISTORY DETAIL
+    # -------------------------
+    
+    @app.route("/GetHistoryDetail", methods=["POST"])
+    def get_history_detail_data():
+        
+        history_detail_request = request.get_json(silent=True) or {}
+        
+        if not isinstance(history_detail_request, dict):
+            return {
+                "error": "Invalid JSON payload"
+            }, 400
+            
+        required_fields = {"Username", "HistoryId"}
+        
+        missing_fields = required_fields - history_detail_request.keys()
+        
+        if missing_fields:
+            return {
+                "error": f"Missing fields: {sorted(missing_fields)}"
+            }, 400
+            
+        username = history_detail_request.get("Username")
+        history_id = history_detail_request.get("HistoryId")
+        
+        if not isinstance(username, str):
+            return {
+                "error": "Username must be a string"
+            }, 400
+        
+        if not isinstance(history_id, int):
+            return {
+                "error": "HistoryId must be an integer"
+            }, 400
+        
+        try:
+            detail, error = get_history_detail(history_id, username)
+            
+            if error:
+                if "not found" in error:
+                    return {
+                        "error": error
+                    }, 404
+                return {
+                    "error": error
+                }, 500
+            
+            return {
+                "message": "History detail retrieved successfully",
+                "data": detail
+            }, 200
+        except Exception as e:
+            return {
+                "error": f"Failed to retrieve history detail: {e}"
+            }, 500
+
         
         
         

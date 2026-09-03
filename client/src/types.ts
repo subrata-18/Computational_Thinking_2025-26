@@ -38,3 +38,19 @@ export type LearnAgainResponse = {
   ai_questions: Question[];
   user_question: Question;
 };
+
+export type HistoryEntry = {
+  id: number;
+  user_question: string;
+  score: string;
+};
+
+export type HistoryDetail = {
+  id: number;
+  user_question: string;
+  ai_questions: string;
+  ai_answers: string;
+  score: string;
+  wrong_answered_question: string | null;
+};
+

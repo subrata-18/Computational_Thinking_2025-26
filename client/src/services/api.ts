@@ -2,6 +2,8 @@ import type {
   AuthResponse,
   LearnAgainResponse,
   QuestionResponse,
+  HistoryEntry,
+  HistoryDetail,
 } from "../types";
 
 const API_URL = (import.meta.env.VITE_API_URL ?? "").trim().replace(/\/$/, "");
@@ -145,3 +147,31 @@ export function postDoubtQuestion(
     }),
   });
 }
+
+export type HistoryResponse = {
+  message: string;
+  data: HistoryEntry[];
+};
+
+export type HistoryDetailResponse = {
+  message: string;
+  data: HistoryDetail;
+};
+
+export function getUserHistory(username: string): Promise<HistoryResponse> {
+  return request<HistoryResponse>("/GetUserHistory", {
+    method: "POST",
+    body: JSON.stringify({ Username: username }),
+  });
+}
+
+export function getHistoryDetail(
+  username: string,
+  historyId: number,
+): Promise<HistoryDetailResponse> {
+  return request<HistoryDetailResponse>("/GetHistoryDetail", {
+    method: "POST",
+    body: JSON.stringify({ Username: username, HistoryId: historyId }),
+  });
+}
+

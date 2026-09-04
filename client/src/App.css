@@ -1001,6 +1001,19 @@ button:focus-visible, input:focus-visible {
   .graph-editor-actions { width: 100%; }
   .graph-control { flex: 1; }
 
+  .graph-editor {
+    padding: 9px;
+  }
+
+  .graph-canvas {
+    width: 100%;
+    max-width: 540px;
+  }
+
+  .graph-point-label {
+    font-size: 10px;
+  }
+
   .composer {
     gap: 4px;
   }
@@ -1258,7 +1271,7 @@ button:focus-visible, input:focus-visible {
   }
 
   .main {
-    padding: 76px 10px 16px;
+    padding: 16px 10px 16px;
   }
 
   .home-content {
@@ -1267,6 +1280,23 @@ button:focus-visible, input:focus-visible {
 
   .quiz-card {
     padding: 18px 12px;
+  }
+
+  .graph-editor-header {
+    gap: 8px;
+  }
+
+  .graph-control {
+    padding: 8px 5px;
+    font-size: 10px;
+  }
+
+  .graph-coordinate-label {
+    font-size: 8px;
+  }
+
+  .graph-point-label {
+    font-size: 8px;
   }
 
   .quiz-actions .primary,

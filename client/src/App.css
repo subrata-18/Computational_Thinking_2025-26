@@ -15,7 +15,8 @@ button { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .55; }
 
 .app-shell {
-  height: 100vh;
+  height: 100dvh;
+  min-height: 100vh;
   display: flex;
   background: var(--bg);
   overflow: hidden;
@@ -75,7 +76,7 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 
 .sidebar {
   width: 240px;
-  height: 100vh;
+  height: 100dvh;
   padding: 20px 14px;
   border-right: 1px solid var(--border);
   display: flex;
@@ -167,7 +168,7 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .main {
   flex: 1;
   min-width: 0;
-  height: 100vh;
+  height: 100dvh;
   overflow-y: auto;
   display: flex;
   justify-content: center;
@@ -284,6 +285,9 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 }
 
 .graph-editor {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
   margin-bottom: 10px;
   padding: 12px;
   border: 1px solid var(--border);
@@ -903,7 +907,7 @@ button:focus-visible, input:focus-visible {
     inset: 54px auto 0 0;
     z-index: 40;
     width: min(280px, calc(100vw - 64px));
-    height: calc(100vh - 54px);
+    height: calc(100dvh - 54px);
     padding: 12px;
     border-right: 1px solid var(--border);
     border-bottom: 0;
@@ -967,8 +971,9 @@ button:focus-visible, input:focus-visible {
 
   .main {
     width: 100%;
-    height: calc(100vh - 54px);
-    padding: 16px 14px 22px;
+    height: calc(100dvh - 54px);
+    min-height: calc(100vh - 54px);
+    padding: 16px 14px calc(22px + env(safe-area-inset-bottom));
     margin-top: 54px;
     align-items: flex-start;
   }
@@ -977,6 +982,7 @@ button:focus-visible, input:focus-visible {
     transform: none;
     margin: auto 0;
     padding-top: 8vh;
+    padding-bottom: 8vh;
   }
 
   .welcome {
@@ -1271,7 +1277,7 @@ button:focus-visible, input:focus-visible {
   }
 
   .main {
-    padding: 16px 10px 16px;
+    padding: 16px 10px calc(16px + env(safe-area-inset-bottom));
   }
 
   .home-content {

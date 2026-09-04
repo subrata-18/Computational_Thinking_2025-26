@@ -2,8 +2,22 @@ from flask import request
 
 from services.user_services import create_user, login_user
 from services.questionAPI import get_Doubtresponse, get_response
+from services.graphical_question import get_graphical_response
 from services.score_services import add_ScoreDB
 from services.history_services import get_user_history, get_history_detail
+
+
+def is_valid_coordinates(value):
+    if not isinstance(value, list) or not value:
+        return False
+
+    for point in value:
+        if not isinstance(point, list) or len(point) != 2:
+            return False
+        if not all(isinstance(coordinate, (int, float)) for coordinate in point):
+            return False
+
+    return True
 
 
 def register_routes(app):
@@ -247,6 +261,62 @@ def register_routes(app):
             }, 500
             
         return response, 200
+    
+    
+    
+    
+    # --------------------------------------
+    # For posting graphical questions
+    # --------------------------------------
+    
+    
+    @app.route("/GraphicalQuestionPost", methods=["POST"])
+    def receive_GraphicalQuestion_data():
+        
+        graphical_question_data = request.get_json(silent=True) or {}
+        
+        if not isinstance(graphical_question_data, dict):
+            return {
+                "error": "Invalid JSON payload"
+            }, 400
+            
+        required_fields = {
+                    "Username",
+                    "Question",
+                    "Coordinates",
+                }
+        
+        missing_fields = required_fields - graphical_question_data.keys()
+        
+        if missing_fields:
+            return {
+                "error": f"Missing fields: {sorted(missing_fields)}"
+            }, 400
+            
+        username = graphical_question_data.get("Username")
+        question = graphical_question_data.get("Question")
+        coordinates = graphical_question_data.get("Coordinates")
+
+
+        if not is_valid_coordinates(coordinates):
+            return {
+                "error": "Coordinates must be a non-empty array of [x, y] number pairs"
+            }, 400
+        
+        try: 
+            response = get_graphical_response(
+                username,
+                question,
+                coordinates
+            )
+        except Exception as e:
+            return {
+                "error": f"Failed to get response from Gemini API: {e}"
+            }, 500
+            
+        return response, 200
+    
+    
     
     # --------------------------------------
     # For getting the Score after the quiz

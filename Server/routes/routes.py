@@ -1,3 +1,5 @@
+import math
+
 from flask import request
 
 from services.user_services import create_user, login_user
@@ -8,13 +10,13 @@ from services.history_services import get_user_history, get_history_detail
 
 
 def is_valid_coordinates(value):
-    if not isinstance(value, list) or not value:
+    if not isinstance(value, list) or not value or len(value) > 4:
         return False
 
     for point in value:
         if not isinstance(point, list) or len(point) != 2:
             return False
-        if not all(isinstance(coordinate, (int, float)) for coordinate in point):
+        if not all(isinstance(coordinate, (int, float)) and math.isfinite(coordinate) for coordinate in point):
             return False
 
     return True

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { login, postDoubtQuestion, postQuestion, postScore, signup, getUserHistory, getHistoryDetail } from "./services/api";
+import { login, postDoubtQuestion, postGraphicalQuestion, postQuestion, postScore, signup, getUserHistory, getHistoryDetail } from "./services/api";
 import { uploadQuestionImage } from "./services/supabase";
-import type { LearnAgainResponse, Question, QuestionResponse, User, HistoryEntry, HistoryDetail } from "./types";
+import type { Coordinate, LearnAgainResponse, Question, QuestionResponse, User, HistoryEntry, HistoryDetail } from "./types";
 import "./App.css";
 
 type Page = "landing" | "login" | "signup" | "app";
@@ -58,6 +58,7 @@ function isQuestion(value: unknown): value is Question {
   const options = value.options;
   const hint = value.hint;
   const correctOption = value.correct_option;
+  const coordinates = "coordinates" in value ? value.coordinates : undefined;
 
   return (
     typeof question === "string" &&
@@ -69,7 +70,15 @@ function isQuestion(value: unknown): value is Question {
     typeof correctOption === "number" &&
     Number.isInteger(correctOption) &&
     correctOption >= 1 &&
-    correctOption <= 4
+    correctOption <= 4 &&
+    (coordinates === undefined || (
+      Array.isArray(coordinates) &&
+      coordinates.length <= 4 &&
+      coordinates.every((point) => (
+        Array.isArray(point) && point.length === 2 &&
+        point.every((coordinate) => typeof coordinate === "number" && Number.isFinite(coordinate))
+      ))
+    ))
   );
 }
 
@@ -258,6 +267,8 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
   const [stage, setStage] = useState<Stage>("home");
   const [quote, setQuote] = useState(() => quotes[Math.floor(Math.random() * quotes.length)]);
   const [questionText, setQuestionText] = useState("");
+  const [mode, setMode] = useState<"standard" | "graphical">("standard");
+  const [coordinates, setCoordinates] = useState<Coordinate[]>([]);
   const [image, setImage] = useState<File | null>(null);
   const [imagePath, setImagePath] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -322,6 +333,8 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
   function newChat() {
     removeImage();
     setQuestionText("");
+    setMode("standard");
+    setCoordinates([]);
     setQuestions([]);
     setOriginalQuestion(null);
     setSessionResponse(null);
@@ -408,17 +421,24 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
       return;
     }
 
+    if (mode === "graphical" && coordinates.length === 0) {
+      setError("Add at least one point to your graph.");
+      return;
+    }
+
     if (imageUploading || stage === "loading") return;
 
     setError("");
     setStage("loading");
 
     try {
-      setLoadingMessage("Understanding your question...");
+      setLoadingMessage(mode === "graphical" ? "Reading your graph..." : "Understanding your question...");
       await new Promise<void>((resolve) => window.setTimeout(resolve, 100));
       setLoadingMessage("Generating a personalized practice session...");
 
-      const rawResponse = await postQuestion(user.username, cleanQuestion, imagePath);
+      const rawResponse = mode === "graphical"
+        ? await postGraphicalQuestion(user.username, cleanQuestion, coordinates)
+        : await postQuestion(user.username, cleanQuestion, imagePath);
       const response = validateQuestionResponse(rawResponse);
 
       if (!response) {
@@ -610,6 +630,25 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
       <aside className="sidebar" aria-hidden={!sidebarOpen}>
         <div className="brand">nova ai</div>
         <button className="new-chat" onClick={newChat}>＋ New Chat</button>
+
+        <div className="mode-switcher" aria-label="Question mode">
+          <button
+            type="button"
+            className={mode === "standard" ? "active" : ""}
+            aria-pressed={mode === "standard"}
+            onClick={() => { setMode("standard"); setCoordinates([]); }}
+          >
+            Standard mode
+          </button>
+          <button
+            type="button"
+            className={mode === "graphical" ? "active" : ""}
+            aria-pressed={mode === "graphical"}
+            onClick={() => setMode("graphical")}
+          >
+            Graphical mode
+          </button>
+        </div>
         
         {/* History Section */}
         {history.length > 0 && (
@@ -655,12 +694,16 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
 
               {error && <div className="error composer-error" role="alert">{error}</div>}
 
+              {mode === "graphical" && (
+                <GraphEditor coordinates={coordinates} onChange={setCoordinates} />
+              )}
               <Composer
                 value={questionText}
                 onChange={setQuestionText}
                 onSubmit={submitQuestion}
                 onImage={selectImage}
                 disabled={imageUploading}
+                graphical={mode === "graphical"}
               />
               {image && (
                 <p className="attachment-name">
@@ -708,6 +751,7 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
               review={review}
               loadingIndex={learnLoadingIndex}
               onLearnAgain={learnAgain}
+              hideLearnAgain={mode === "graphical"}
             />
 
             {showLearnResult && learnQuestions.length > 0 && (
@@ -831,12 +875,14 @@ function Composer({
   onSubmit,
   onImage,
   disabled,
+  graphical,
 }: {
   value: string;
   onChange: (value: string) => void;
   onSubmit: () => void;
   onImage: (event: React.ChangeEvent<HTMLInputElement>) => void;
   disabled: boolean;
+  graphical: boolean;
 }) {
   return (
     <div className="composer">
@@ -853,7 +899,7 @@ function Composer({
         aria-label="Ask your question"
         disabled={disabled}
       />
-      <label className="icon-button" aria-label="Upload image">
+      {!graphical && <label className="icon-button" aria-label="Upload image">
         📎
         <input
           type="file"
@@ -862,9 +908,121 @@ function Composer({
           onChange={onImage}
           disabled={disabled}
         />
-      </label>
+      </label>}
       <button className="send" onClick={onSubmit} disabled={disabled} aria-label="Send">➤</button>
     </div>
+  );
+}
+
+function GraphEditor({
+  coordinates,
+  onChange,
+}: {
+  coordinates: Coordinate[];
+  onChange: (coordinates: Coordinate[]) => void;
+}) {
+  return (
+    <div className="graph-editor">
+      <div className="graph-editor-header">
+        <div>
+          <strong>Graph</strong>
+          <span>{coordinates.length}/4 points</span>
+        </div>
+        <div className="graph-editor-actions">
+          <button
+            type="button"
+            className="graph-control"
+            onClick={() => onChange([...coordinates, [0, 0]])}
+            disabled={coordinates.length >= 4}
+          >
+            + Add point
+          </button>
+          <button
+            type="button"
+            className="graph-control"
+            onClick={() => onChange(coordinates.slice(0, -1))}
+            disabled={coordinates.length === 0}
+          >
+            − Remove point
+          </button>
+        </div>
+      </div>
+      <GraphCanvas coordinates={coordinates} editable onChange={onChange} />
+      <p className="graph-help">Drag points to place them on the 20 × 20 grid.</p>
+    </div>
+  );
+}
+
+function GraphCanvas({
+  coordinates,
+  editable = false,
+  onChange,
+}: {
+  coordinates: Coordinate[];
+  editable?: boolean;
+  onChange?: (coordinates: Coordinate[]) => void;
+}) {
+  const size = 540;
+  const graphPadding = 30;
+  const origin = size / 2;
+  const unit = (size - graphPadding * 2) / 20;
+  const toSvg = ([x, y]: Coordinate) => [origin + x * unit, origin - y * unit];
+
+  function movePoint(index: number, event: React.PointerEvent<SVGCircleElement>) {
+    if (!editable || !onChange) return;
+    const svg = event.currentTarget.ownerSVGElement;
+    if (!svg) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    const update = (moveEvent: PointerEvent) => {
+      const rect = svg.getBoundingClientRect();
+      const x = ((moveEvent.clientX - rect.left) / rect.width) * size;
+      const y = ((moveEvent.clientY - rect.top) / rect.height) * size;
+      const next: Coordinate = [
+        Math.max(-10, Math.min(10, Math.round(((x - origin) / unit) * 2) / 2)),
+        Math.max(-10, Math.min(10, Math.round(((origin - y) / unit) * 2) / 2)),
+      ];
+      onChange(coordinates.map((point, pointIndex) => pointIndex === index ? next : point));
+    };
+    const stop = () => {
+      window.removeEventListener("pointermove", update);
+      window.removeEventListener("pointerup", stop);
+    };
+    window.addEventListener("pointermove", update);
+    window.addEventListener("pointerup", stop, { once: true });
+  }
+
+  return (
+    <svg
+      className={`graph-canvas ${editable ? "editable" : ""}`}
+      viewBox={`0 0 ${size} ${size}`}
+      role="img"
+      aria-label="Coordinate graph"
+      onPointerDown={(event) => { if (editable && event.target === event.currentTarget) event.preventDefault(); }}
+    >
+      <rect width={size} height={size} className="graph-background" />
+      {Array.from({ length: 21 }, (_, index) => {
+        const position = graphPadding + index * unit;
+        const label = index - 10;
+        return <g key={index}>
+          <line x1={position} y1="0" x2={position} y2={size} className="graph-grid-line" />
+          <line x1="0" y1={position} x2={size} y2={position} className="graph-grid-line" />
+          {label !== 0 && <>
+            <text x={position} y={origin + 16} textAnchor="middle" className="graph-coordinate-label">{label}</text>
+            <text x={origin - 7} y={origin - label * unit + 4} textAnchor="end" className="graph-coordinate-label">{label}</text>
+          </>}
+        </g>;
+      })}
+      <line x1="0" y1={origin} x2={size} y2={origin} className="graph-axis" />
+      <line x1={origin} y1={size} x2={origin} y2="0" className="graph-axis" />
+      <text x={size - 13} y={origin - 8} className="graph-axis-label">x</text>
+      <text x={origin + 8} y="15" className="graph-axis-label">y</text>
+      {coordinates.length >= 3 && <polygon points={coordinates.map(toSvg).map(([x, y]) => `${x},${y}`).join(" ")} className="graph-line" />}
+      {coordinates.length === 2 && <polyline points={coordinates.map(toSvg).map(([x, y]) => `${x},${y}`).join(" ")} className="graph-line" />}
+      {coordinates.map((point, index) => {
+        const [x, y] = toSvg(point);
+        return <g key={index}><circle cx={x} cy={y} r="8" className={`graph-point point-${index}`} onPointerDown={(event) => movePoint(index, event)} /><text x={x + 10} y={y - 10} className="graph-point-label">P{index + 1} ({point[0]}, {point[1]})</text></g>;
+      })}
+    </svg>
   );
 }
 
@@ -909,6 +1067,7 @@ function Quiz({
       </div>
 
       <section className="quiz-card">
+      {question.coordinates && question.coordinates.length > 0 && <GraphCanvas coordinates={question.coordinates} />}
         <h1>{question.question}</h1>
         <div className="options" role="radiogroup" aria-label="Answer options">
           {question.options.map((option, index) => {
@@ -970,10 +1129,12 @@ function QuestionReview({
   review,
   loadingIndex,
   onLearnAgain,
+  hideLearnAgain = false,
 }: {
   review: ReviewItem[];
   loadingIndex: number | null;
   onLearnAgain: (question: Question, index: number) => void;
+  hideLearnAgain?: boolean;
 }) {
   return (
     <section className="review-section" aria-labelledby="review-title">
@@ -1001,7 +1162,7 @@ function QuestionReview({
                 </div>
               )}
             </div>
-            {!item.correct && (
+            {!item.correct && !hideLearnAgain && (
               <button
                 type="button"
                 className="secondary learn-button"
@@ -1089,34 +1250,22 @@ function LearnAgainResult({
   );
 }
 
+function parseStoredList(value: string): string[] {
+  try {
+    const parsed: unknown = JSON.parse(value);
+    if (Array.isArray(parsed)) {
+      return parsed.filter((item): item is string => typeof item === "string");
+    }
+  } catch {
+    // Fall through to the legacy delimiter format.
+  }
+
+  return value.split(", ").map((item) => item.trim()).filter((item) => item.length > 0);
+}
+
 function HistoryReview({ historyDetail }: { historyDetail: HistoryDetail }) {
-  // Parse AI questions and answers from stored JSON strings
-  let aiQuestionsList: string[] = [];
-  let aiAnswersList: string[] = [];
-
-  try {
-    // Try parsing as JSON first (new format)
-    aiQuestionsList = JSON.parse(historyDetail.ai_questions);
-    if (!Array.isArray(aiQuestionsList)) aiQuestionsList = [];
-  } catch {
-    // Fallback to comma-separated parsing (legacy format)
-    aiQuestionsList = historyDetail.ai_questions
-      .split(", ")
-      .map((q) => q.trim())
-      .filter((q) => q.length > 0);
-  }
-
-  try {
-    // Try parsing as JSON first (new format)
-    aiAnswersList = JSON.parse(historyDetail.ai_answers);
-    if (!Array.isArray(aiAnswersList)) aiAnswersList = [];
-  } catch {
-    // Fallback to comma-separated parsing (legacy format)
-    aiAnswersList = historyDetail.ai_answers
-      .split(", ")
-      .map((a) => a.trim())
-      .filter((a) => a.length > 0);
-  }
+  const aiQuestionsList = parseStoredList(historyDetail.ai_questions);
+  const aiAnswersList = parseStoredList(historyDetail.ai_answers);
 
   const wrongQuestions = historyDetail.wrong_answered_question
     ? historyDetail.wrong_answered_question

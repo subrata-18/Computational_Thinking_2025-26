@@ -4,6 +4,7 @@ import type {
   QuestionResponse,
   HistoryEntry,
   HistoryDetail,
+  Coordinate,
 } from "../types";
 
 const API_URL = (import.meta.env.VITE_API_URL ?? "").trim().replace(/\/$/, "");
@@ -112,6 +113,21 @@ export function postQuestion(
       Username: username,
       Question: question,
       Image_path: imagePath,
+    }),
+  });
+}
+
+export function postGraphicalQuestion(
+  username: string,
+  question: string,
+  coordinates: Coordinate[],
+): Promise<QuestionResponse> {
+  return request<QuestionResponse>("/GraphicalQuestionPost", {
+    method: "POST",
+    body: JSON.stringify({
+      Username: username,
+      Question: question,
+      Coordinates: coordinates,
     }),
   });
 }

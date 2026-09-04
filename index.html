@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    >
+
+    <title>Mathematics Lab - Graph Mode</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            color: #222;
+
+            /* Prevent accidental scrolling while dragging */
+            overscroll-behavior: none;
+        }
+
+        .header {
+            background: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .header p {
+            margin: 5px 0 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .main {
+            max-width: 1100px;
+            margin: auto;
+            padding: 15px;
+        }
+
+        .graph-container {
+            background: white;
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        #graph {
+            width: 100%;
+            height: auto;
+            display: block;
+
+            /* VERY IMPORTANT FOR MOBILE */
+            touch-action: none;
+
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .controls {
+            margin-top: 15px;
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .info-box {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .info-title {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .info-value {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .buttons {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        button {
+            border: none;
+            background: #222;
+            color: white;
+            padding: 12px 22px;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        button:active {
+            transform: scale(0.97);
+        }
+
+        .instructions {
+            margin-top: 15px;
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Mobile */
+        @media (max-width: 600px) {
+
+            .header h1 {
+                font-size: 19px;
+            }
+
+            .main {
+                padding: 8px;
+            }
+
+            .graph-container {
+                padding: 5px;
+            }
+
+            .controls {
+                grid-template-columns: repeat(2, 1fr);
+                padding: 10px;
+            }
+
+            .info-box {
+                padding: 10px 5px;
+            }
+
+            .info-value {
+                font-size: 16px;
+            }
+
+            .instructions {
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>Mathematics Lab — Graph Mode</h1>
+    <p>Touch and drag the points to explore coordinates.</p>
+</div>
+
+<div class="main">
+
+    <div class="graph-container">
+
+        <svg
+            id="graph"
+            viewBox="0 0 800 600"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+
+            <!-- ========================= -->
+            <!-- DEFINITIONS                -->
+            <!-- ========================= -->
+
+            <defs>
+
+                <!-- Arrow for axes -->
+                <marker
+                    id="arrow"
+                    markerWidth="8"
+                    markerHeight="8"
+                    refX="6"
+                    refY="3"
+                    orient="auto"
+                >
+                    <path d="M0,0 L0,6 L6,3 Z"></path>
+                </marker>
+
+            </defs>
+
+
+            <!-- ========================= -->
+            <!-- GRAPH BACKGROUND            -->
+            <!-- ========================= -->
+
+            <rect
+                x="0"
+                y="0"
+                width="800"
+                height="600"
+                fill="white"
+            />
+
+
+            <!-- ========================= -->
+            <!-- GRID                         -->
+            <!-- ========================= -->
+
+            <g id="grid"></g>
+
+
+            <!-- ========================= -->
+            <!-- AXES                         -->
+            <!-- ========================= -->
+
+            <g id="axes">
+
+                <!-- X axis -->
+                <line
+                    id="xAxis"
+                    stroke="black"
+                    stroke-width="2"
+                    marker-end="url(#arrow)"
+                />
+
+                <!-- Y axis -->
+                <line
+                    id="yAxis"
+                    stroke="black"
+                    stroke-width="2"
+                    marker-end="url(#arrow)"
+                />
+
+            </g>
+
+
+            <!-- ========================= -->
+            <!-- AXIS LABELS                  -->
+            <!-- ========================= -->
+
+            <text
+                id="xLabel"
+                font-size="16"
+                font-weight="bold"
+            >
+                X
+            </text>
+
+            <text
+                id="yLabel"
+                font-size="16"
+                font-weight="bold"
+            >
+                Y
+            </text>
+
+
+            <!-- ========================= -->
+            <!-- LINE AB                      -->
+            <!-- ========================= -->
+
+            <line
+                id="lineAB"
+                stroke="black"
+                stroke-width="3"
+            />
+
+
+            <!-- ========================= -->
+            <!-- POINT A                      -->
+            <!-- ========================= -->
+
+            <!-- Invisible larger touch area -->
+            <circle
+                id="touchA"
+                r="18"
+                fill="transparent"
+                style="cursor: grab;"
+            />
+
+            <!-- Visible point -->
+            <circle
+                id="pointA"
+                r="9"
+                fill="red"
+                stroke="white"
+                stroke-width="3"
+                style="pointer-events: none;"
+            />
+
+            <text
+                id="labelA"
+                font-size="16"
+                font-weight="bold"
+            >
+                A
+            </text>
+
+
+            <!-- ========================= -->
+            <!-- POINT B                      -->
+            <!-- ========================= -->
+
+            <!-- Invisible larger touch area -->
+            <circle
+                id="touchB"
+                r="18"
+                fill="transparent"
+                style="cursor: grab;"
+            />
+
+            <!-- Visible point -->
+            <circle
+                id="pointB"
+                r="9"
+                fill="blue"
+                stroke="white"
+                stroke-width="3"
+                style="pointer-events: none;"
+            />
+
+            <text
+                id="labelB"
+                font-size="16"
+                font-weight="bold"
+            >
+                B
+            </text>
+
+
+            <!-- ========================= -->
+            <!-- COORDINATE DISPLAY           -->
+            <!-- ========================= -->
+
+            <g id="coordinateDisplay">
+
+                <rect
+                    id="coordBox"
+                    width="170"
+                    height="65"
+                    rx="8"
+                    fill="white"
+                    stroke="#ccc"
+                />
+
+                <text
+                    id="coordText"
+                    x="10"
+                    y="25"
+                    font-size="14"
+                ></text>
+
+                <text
+                    id="coordText2"
+                    x="10"
+                    y="48"
+                    font-size="14"
+                ></text>
+
+            </g>
+
+        </svg>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- INFORMATION                -->
+    <!-- ========================= -->
+
+    <div class="controls">
+
+        <div class="info-box">
+            <div class="info-title">
+                Point A
+            </div>
+
+            <div
+                class="info-value"
+                id="aValue"
+            >
+                (0, 0)
+            </div>
+        </div>
+
+
+        <div class="info-box">
+            <div class="info-title">
+                Point B
+            </div>
+
+            <div
+                class="info-value"
+                id="bValue"
+            >
+                (4, 3)
+            </div>
+        </div>
+
+
+        <div class="info-box">
+            <div class="info-title">
+                Distance
+            </div>
+
+            <div
+                class="info-value"
+                id="distance"
+            >
+                5.00
+            </div>
+        </div>
+
+
+        <div class="info-box">
+            <div class="info-title">
+                Slope
+            </div>
+
+            <div
+                class="info-value"
+                id="slope"
+            >
+                0.75
+            </div>
+        </div>
+
+
+        <div class="info-box">
+            <div class="info-title">
+                Midpoint
+            </div>
+
+            <div
+                class="info-value"
+                id="midpoint"
+            >
+                (2, 1.5)
+            </div>
+        </div>
+
+
+        <div class="info-box">
+            <div class="info-title">
+                ΔX / ΔY
+            </div>
+
+            <div
+                class="info-value"
+                id="delta"
+            >
+                4 / 3
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- RESET BUTTON                -->
+    <!-- ========================= -->
+
+    <div class="buttons">
+
+        <button id="resetButton">
+            Reset Points
+        </button>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- INSTRUCTIONS                -->
+    <!-- ========================= -->
+
+    <div class="instructions">
+
+        <strong>How to use:</strong>
+
+        <br>
+
+        📱 On mobile/tablet:
+        touch and drag the red or blue point.
+
+        <br>
+
+        🖱️ On computer:
+        click and drag the point.
+
+        <br>
+
+        The coordinates, distance, slope and midpoint
+        update automatically.
+
+    </div>
+
+</div>
+
+
+<script>
+
+    // =========================================
+    // SVG
+    // =========================================
+
+    const svg = document.getElementById("graph");
+
+    const grid = document.getElementById("grid");
+
+    const xAxis = document.getElementById("xAxis");
+
+    const yAxis = document.getElementById("yAxis");
+
+    const xLabel = document.getElementById("xLabel");
+
+    const yLabel = document.getElementById("yLabel");
+
+    const lineAB = document.getElementById("lineAB");
+
+    const pointA = document.getElementById("pointA");
+
+    const pointB = document.getElementById("pointB");
+
+    const touchA = document.getElementById("touchA");
+
+    const touchB = document.getElementById("touchB");
+
+    const labelA = document.getElementById("labelA");
+
+    const labelB = document.getElementById("labelB");
+
+    const coordBox = document.getElementById("coordBox");
+
+    const coordText = document.getElementById("coordText");
+
+    const coordText2 = document.getElementById("coordText2");
+
+
+    // =========================================
+    // GRAPH SETTINGS
+    // =========================================
+
+    const WIDTH = 800;
+    const HEIGHT = 600;
+
+    // Size of one mathematical unit
+    const SCALE = 40;
+
+    // Origin
+    const ORIGIN_X = WIDTH / 2;
+    const ORIGIN_Y = HEIGHT / 2;
+
+
+    // =========================================
+    // POINT DATA
+    // =========================================
+
+    let A = {
+        x: 0,
+        y: 0
+    };
+
+    let B = {
+        x: 4,
+        y: 3
+    };
+
+
+    // Currently dragging
+    let dragging = null;
+
+
+    // =========================================
+    // CONVERT MATH COORDINATE → SVG
+    // =========================================
+
+    function mathToSVG(x, y) {
+
+        return {
+            x: ORIGIN_X + x * SCALE,
+            y: ORIGIN_Y - y * SCALE
+        };
+
+    }
+
+
+    // =========================================
+    // CONVERT SVG → MATH COORDINATE
+    // =========================================
+
+    function svgToMath(x, y) {
+
+        return {
+            x: (x - ORIGIN_X) / SCALE,
+            y: (ORIGIN_Y - y) / SCALE
+        };
+
+    }
+
+
+    // =========================================
+    // CREATE GRID
+    // =========================================
+
+    function createGrid() {
+
+        grid.innerHTML = "";
+
+        // Vertical lines
+        for (
+            let x = 0;
+            x <= WIDTH;
+            x += SCALE
+        ) {
+
+            const line =
+                document.createElementNS(
+                    "http://www.w3.org/2000/svg",
+                    "line"
+                );
+
+            line.setAttribute("x1", x);
+            line.setAttribute("y1", 0);
+
+            line.setAttribute("x2", x);
+            line.setAttribute("y2", HEIGHT);
+
+            line.setAttribute("stroke", "#ddd");
+            line.setAttribute("stroke-width", "1");
+
+            grid.appendChild(line);
+        }
+
+
+        // Horizontal lines
+        for (
+            let y = 0;
+            y <= HEIGHT;
+            y += SCALE
+        ) {
+
+            const line =
+                document.createElementNS(
+                    "http://www.w3.org/2000/svg",
+                    "line"
+                );
+
+            line.setAttribute("x1", 0);
+            line.setAttribute("y1", y);
+
+            line.setAttribute("x2", WIDTH);
+            line.setAttribute("y2", y);
+
+            line.setAttribute("stroke", "#ddd");
+            line.setAttribute("stroke-width", "1");
+
+            grid.appendChild(line);
+        }
+
+    }
+
+
+    // =========================================
+    // CREATE AXIS TICKS + NUMBERS
+    // =========================================
+
+    function createTicks() {
+
+        // Remove old ticks
+        const old =
+            document.querySelectorAll(".tick");
+
+        old.forEach(
+            element => element.remove()
+        );
+
+
+        // X axis numbers
+        for (
+            let x = -10;
+            x <= 10;
+            x++
+        ) {
+
+            if (x === 0) continue;
+
+            const position =
+                mathToSVG(x, 0);
+
+            const tick =
+                document.createElementNS(
+                    "http://www.w3.org/2000/svg",
+                    "line"
+                );
+
+            tick.classList.add("tick");
+
+            tick.setAttribute(
+                "x1",
+                position.x
+            );
+
+            tick.setAttribute(
+                "y1",
+                position.y - 5
+            );
+
+            tick.setAttribute(
+                "x2",
+                position.x
+            );
+
+            tick.setAttribute(
+                "y2",
+                position.y + 5
+            );
+
+            tick.setAttribute(
+                "stroke",
+                "black"
+            );
+
+            svg.appendChild(tick);
+
+
+            const text =
+                document.createElementNS(
+                    "http://www.w3.org/2000/svg",
+                    "text"
+                );
+
+            text.classList.add("tick");
+
+            text.setAttribute(
+                "x",
+                position.x
+            );
+
+            text.setAttribute(
+                "y",
+                position.y + 20
+            );
+
+            text.setAttribute(
+                "text-anchor",
+                "middle"
+            );
+
+            text.setAttribute(
+                "font-size",
+                "12"
+            );
+
+            text.textContent = x;
+
+            svg.appendChild(text);
+        }
+
+
+        // Y axis numbers
+        for (
+            let y = -7;
+            y <= 7;
+            y++
+        ) {
+
+            if (y === 0) continue;
+
+            const position =
+                mathToSVG(0, y);
+
+            const tick =
+                document.createElementNS(
+                    "http://www.w3.org/2000/svg",
+                    "line"
+                );
+
+            tick.classList.add("tick");
+
+            tick.setAttribute(
+                "x1",
+                position.x - 5
+            );
+
+            tick.setAttribute(
+                "y1",
+                position.y
+            );
+
+            tick.setAttribute(
+                "x2",
+                position.x + 5
+            );
+
+            tick.setAttribute(
+                "y2",
+                position.y
+            );
+
+            tick.setAttribute(
+                "stroke",
+                "black"
+            );
+
+            svg.appendChild(tick);
+
+
+            const text =
+                document.createElementNS(
+                    "http://www.w3.org/2000/svg",
+                    "text"
+                );
+
+            text.classList.add("tick");
+
+            text.setAttribute(
+                "x",
+                position.x - 10
+            );
+
+            text.setAttribute(
+                "y",
+                position.y + 4
+            );
+
+            text.setAttribute(
+                "text-anchor",
+                "end"
+            );
+
+            text.setAttribute(
+                "font-size",
+                "12"
+            );
+
+            text.textContent = y;
+
+            svg.appendChild(text);
+        }
+
+
+        // Origin label
+        const origin =
+            document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "text"
+            );
+
+        origin.classList.add("tick");
+
+        origin.setAttribute(
+            "x",
+            ORIGIN_X - 10
+        );
+
+        origin.setAttribute(
+            "y",
+            ORIGIN_Y + 20
+        );
+
+        origin.setAttribute(
+            "font-size",
+            "12"
+        );
+
+        origin.textContent = "0";
+
+        svg.appendChild(origin);
+
+    }
+
+
+    // =========================================
+    // DRAW AXES
+    // =========================================
+
+    function drawAxes() {
+
+        // X axis
+        xAxis.setAttribute(
+            "x1",
+            20
+        );
+
+        xAxis.setAttribute(
+            "y1",
+            ORIGIN_Y
+        );
+
+        xAxis.setAttribute(
+            "x2",
+            WIDTH - 20
+        );
+
+        xAxis.setAttribute(
+            "y2",
+            ORIGIN_Y
+        );
+
+
+        // Y axis
+        yAxis.setAttribute(
+            "x1",
+            ORIGIN_X
+        );
+
+        yAxis.setAttribute(
+            "y1",
+            HEIGHT - 20
+        );
+
+        yAxis.setAttribute(
+            "x2",
+            ORIGIN_X
+        );
+
+        yAxis.setAttribute(
+            "y2",
+            20
+        );
+
+
+        // Labels
+        xLabel.setAttribute(
+            "x",
+            WIDTH - 30
+        );
+
+        xLabel.setAttribute(
+            "y",
+            ORIGIN_Y - 10
+        );
+
+
+        yLabel.setAttribute(
+            "x",
+            ORIGIN_X + 10
+        );
+
+        yLabel.setAttribute(
+            "y",
+            35
+        );
+
+    }
+
+
+    // =========================================
+    // UPDATE GRAPH
+    // =========================================
+
+    function updateGraph() {
+
+        const svgA =
+            mathToSVG(A.x, A.y);
+
+        const svgB =
+            mathToSVG(B.x, B.y);
+
+
+        // Point A
+        pointA.setAttribute(
+            "cx",
+            svgA.x
+        );
+
+        pointA.setAttribute(
+            "cy",
+            svgA.y
+        );
+
+        touchA.setAttribute(
+            "cx",
+            svgA.x
+        );
+
+        touchA.setAttribute(
+            "cy",
+            svgA.y
+        );
+
+
+        // Point B
+        pointB.setAttribute(
+            "cx",
+            svgB.x
+        );
+
+        pointB.setAttribute(
+            "cy",
+            svgB.y
+        );
+
+        touchB.setAttribute(
+            "cx",
+            svgB.x
+        );
+
+        touchB.setAttribute(
+            "cy",
+            svgB.y
+        );
+
+
+        // Labels
+        labelA.setAttribute(
+            "x",
+            svgA.x + 12
+        );
+
+        labelA.setAttribute(
+            "y",
+            svgA.y - 12
+        );
+
+
+        labelB.setAttribute(
+            "x",
+            svgB.x + 12
+        );
+
+        labelB.setAttribute(
+            "y",
+            svgB.y - 12
+        );
+
+
+        // Line AB
+        lineAB.setAttribute(
+            "x1",
+            svgA.x
+        );
+
+        lineAB.setAttribute(
+            "y1",
+            svgA.y
+        );
+
+        lineAB.setAttribute(
+            "x2",
+            svgB.x
+        );
+
+        lineAB.setAttribute(
+            "y2",
+            svgB.y
+        );
+
+
+        // Mathematical calculations
+        const dx =
+            B.x - A.x;
+
+        const dy =
+            B.y - A.y;
+
+        const distance =
+            Math.sqrt(
+                dx * dx + dy * dy
+            );
+
+        let slope;
+
+        if (dx === 0) {
+            slope = "Undefined";
+        } else {
+            slope =
+                (dy / dx).toFixed(2);
+        }
+
+        const midX =
+            (A.x + B.x) / 2;
+
+        const midY =
+            (A.y + B.y) / 2;
+
+
+        // Update information
+        document.getElementById(
+            "aValue"
+        ).textContent =
+            `(${format(A.x)}, ${format(A.y)})`;
+
+
+        document.getElementById(
+            "bValue"
+        ).textContent =
+            `(${format(B.x)}, ${format(B.y)})`;
+
+
+        document.getElementById(
+            "distance"
+        ).textContent =
+            distance.toFixed(2);
+
+
+        document.getElementById(
+            "slope"
+        ).textContent =
+            slope;
+
+
+        document.getElementById(
+            "midpoint"
+        ).textContent =
+            `(${format(midX)}, ${format(midY)})`;
+
+
+        document.getElementById(
+            "delta"
+        ).textContent =
+            `${format(dx)} / ${format(dy)}`;
+
+    }
+
+
+    // =========================================
+    // FORMAT NUMBERS
+    // =========================================
+
+    function format(value) {
+
+        if (
+            Number.isInteger(value)
+        ) {
+            return value;
+        }
+
+        return value.toFixed(2);
+
+    }
+
+
+    // =========================================
+    // GET POINTER POSITION
+    // =========================================
+
+    function getPointerPosition(event) {
+
+        const rect =
+            svg.getBoundingClientRect();
+
+
+        /*
+            SVG viewBox is:
+
+            0 → 800
+            0 → 600
+
+            But the actual mobile screen
+            might be much smaller.
+
+            Therefore we convert the
+            screen coordinates back into
+            SVG coordinates.
+        */
+
+        const svgX =
+            (event.clientX - rect.left)
+            * (WIDTH / rect.width);
+
+
+        const svgY =
+            (event.clientY - rect.top)
+            * (HEIGHT / rect.height);
+
+
+        return {
+            x: svgX,
+            y: svgY
+        };
+
+    }
+
+
+    // =========================================
+    // START DRAGGING
+    // =========================================
+
+    function startDrag(event, pointName) {
+
+        event.preventDefault();
+
+        dragging = pointName;
+
+
+        // Keep receiving pointer events
+        // even if finger moves outside point
+        event.currentTarget.setPointerCapture(
+            event.pointerId
+        );
+
+    }
+
+
+    // =========================================
+    // DRAG
+    // =========================================
+
+    function drag(event) {
+
+        if (!dragging) {
+            return;
+        }
+
+        event.preventDefault();
+
+
+        const position =
+            getPointerPosition(event);
+
+
+        const math =
+            svgToMath(
+                position.x,
+                position.y
+            );
+
+
+        // Snap to nearest 0.5 unit
+        const snappedX =
+            Math.round(math.x * 2) / 2;
+
+        const snappedY =
+            Math.round(math.y * 2) / 2;
+
+
+        if (dragging === "A") {
+
+            A.x = snappedX;
+            A.y = snappedY;
+
+        }
+
+        else if (dragging === "B") {
+
+            B.x = snappedX;
+            B.y = snappedY;
+
+        }
+
+
+        updateGraph();
+
+    }
+
+
+    // =========================================
+    // STOP DRAGGING
+    // =========================================
+
+    function endDrag(event) {
+
+        dragging = null;
+
+    }
+
+
+    // =========================================
+    // POINTER EVENTS
+    // =========================================
+
+    touchA.addEventListener(
+        "pointerdown",
+        event => startDrag(event, "A")
+    );
+
+
+    touchB.addEventListener(
+        "pointerdown",
+        event => startDrag(event, "B")
+    );
+
+
+    svg.addEventListener(
+        "pointermove",
+        drag
+    );
+
+
+    svg.addEventListener(
+        "pointerup",
+        endDrag
+    );
+
+
+    svg.addEventListener(
+        "pointercancel",
+        endDrag
+    );
+
+
+    // =========================================
+    // RESET
+    // =========================================
+
+    document.getElementById(
+        "resetButton"
+    ).addEventListener(
+        "click",
+        () => {
+
+            A = {
+                x: 0,
+                y: 0
+            };
+
+            B = {
+                x: 4,
+                y: 3
+            };
+
+            updateGraph();
+
+        }
+    );
+
+
+    // =========================================
+    // INITIALIZE
+    // =========================================
+
+    createGrid();
+
+    drawAxes();
+
+    createTicks();
+
+    updateGraph();
+
+</script>
+
+</body>
+</html>

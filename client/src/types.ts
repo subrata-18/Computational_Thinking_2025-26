@@ -13,7 +13,10 @@ export type Question = {
   options: string[];
   hint: string;
   correct_option: number;
+  coordinates?: Coordinate[];
 };
+
+export type Coordinate = [number, number];
 
 export type QuestionResponse = {
   is_relevant: boolean;

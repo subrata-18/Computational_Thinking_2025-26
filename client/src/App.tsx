@@ -421,11 +421,6 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
       return;
     }
 
-    if (mode === "graphical" && coordinates.length === 0) {
-      setError("Add at least one point to your graph.");
-      return;
-    }
-
     if (imageUploading || stage === "loading") return;
 
     setError("");

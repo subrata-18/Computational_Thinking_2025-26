@@ -10,7 +10,7 @@ from services.history_services import get_user_history, get_history_detail
 
 
 def is_valid_coordinates(value):
-    if not isinstance(value, list) or not value or len(value) > 4:
+    if not isinstance(value, list) or len(value) > 4:
         return False
 
     for point in value:
@@ -302,7 +302,7 @@ def register_routes(app):
 
         if not is_valid_coordinates(coordinates):
             return {
-                "error": "Coordinates must be a non-empty array of [x, y] number pairs"
+                "error": "Coordinates must be an array of up to 4 [x, y] number pairs"
             }, 400
         
         try: 

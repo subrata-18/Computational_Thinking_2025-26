@@ -973,9 +973,10 @@ button:focus-visible, input:focus-visible {
     width: 100%;
     height: calc(100dvh - 54px);
     min-height: calc(100vh - 54px);
-    padding: 16px 14px calc(22px + env(safe-area-inset-bottom));
+    padding: 16px 14px calc(100px + env(safe-area-inset-bottom));
     margin-top: 54px;
     align-items: flex-start;
+    scroll-padding-bottom: 100px;
   }
 
   .home-content {
@@ -1277,7 +1278,7 @@ button:focus-visible, input:focus-visible {
   }
 
   .main {
-    padding: 16px 10px calc(16px + env(safe-area-inset-bottom));
+    padding: 16px 10px calc(100px + env(safe-area-inset-bottom));
   }
 
   .home-content {

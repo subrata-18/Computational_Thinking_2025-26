@@ -1014,8 +1014,10 @@ function GraphCanvas({
       })}
       <line x1="0" y1={origin} x2={size} y2={origin} className="graph-axis" />
       <line x1={origin} y1={size} x2={origin} y2="0" className="graph-axis" />
-      <text x={size - 18} y={origin - 8} className="graph-axis-label">x&apos;</text>
-      <text x={origin + 8} y="20" className="graph-axis-label">y&apos;</text>
+      <text x="16" y={origin - 8} className="graph-axis-label">x&apos;</text>
+      <text x={size - 18} y={origin - 8} className="graph-axis-label">x</text>
+      <text x={origin + 8} y="20" className="graph-axis-label">y</text>
+      <text x={origin + 8} y={size - 10} className="graph-axis-label">y&apos;</text>
       {coordinates.length >= 3 && <polygon points={coordinates.map(toSvg).map(([x, y]) => `${x},${y}`).join(" ")} className="graph-line" />}
       {coordinates.length === 2 && <polyline points={coordinates.map(toSvg).map(([x, y]) => `${x},${y}`).join(" ")} className="graph-line" />}
       {coordinates.map((point, index) => {

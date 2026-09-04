@@ -1076,11 +1076,9 @@ button:focus-visible, input:focus-visible {
   }
 
   .quiz-actions {
-    position: sticky;
-    bottom: 0;
-    padding: 10px 0 2px;
+    position: static;
+    padding: 0;
     margin-top: 18px;
-    background: linear-gradient(transparent, var(--panel) 35%);
   }
 
   .quiz-actions .primary,

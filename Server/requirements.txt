@@ -6,3 +6,4 @@ flask-cors
 google-genai
 supabase
 gunicorn
+argon2-cffi

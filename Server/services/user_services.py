@@ -1,5 +1,24 @@
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError, VerificationError
+
 from database.db import db
 from database.models import User
+
+
+password_hasher = PasswordHasher()
+
+
+def hash_password(password: str) -> str:
+    """Create a secure Argon2id password hash."""
+    return password_hasher.hash(password)
+
+
+def verify_password(password: str, password_hash: str) -> bool:
+    """Verify a plaintext password against an Argon2id hash."""
+    try:
+        return password_hasher.verify(password_hash, password)
+    except (VerifyMismatchError, VerificationError):
+        return False
 
 
 def create_user(username, password):
@@ -14,10 +33,12 @@ def create_user(username, password):
     if existing_user:
         return None, "Username already exists"
 
-    # Create user
+    # Hash password before storing it
+    password_hash = hash_password(password)
+
     user = User(
         username=username,
-        password=password
+        password=password_hash
     )
 
     try:
@@ -40,13 +61,11 @@ def login_user(username, password):
     except Exception:
         return None, "Database query failed"
 
-    # User doesn't exist
     if not existing_user:
         return None, "Username not found"
 
-    # Check password
-    if existing_user.password != password:
+    # Verify password against stored Argon2 hash
+    if not verify_password(password, existing_user.password):
         return None, "Incorrect password"
 
     return existing_user, None
-

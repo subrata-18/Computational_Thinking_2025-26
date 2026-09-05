@@ -459,6 +459,10 @@ button:disabled { cursor: not-allowed; opacity: .55; }
   transition: .15s;
 }
 
+.option .katex {
+  font-size: 1.2em;
+}
+
 .option:hover, .option:focus-visible {
   border-color: #55555c;
   background: #17171a;

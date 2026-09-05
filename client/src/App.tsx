@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { login, postDoubtQuestion, postGraphicalQuestion, postQuestion, postScore, signup, getUserHistory, getHistoryDetail } from "./services/api";
 import { uploadQuestionImage } from "./services/supabase";
 import type { Coordinate, LearnAgainResponse, Question, QuestionResponse, User, HistoryEntry, HistoryDetail } from "./types";
+import MathText from "./components/MathText";
 import "./App.css";
 
 type Page = "landing" | "login" | "signup" | "app";
@@ -807,7 +808,7 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
                 <h1>Correct! 🎉</h1>
                 <p>
                   Correct answer:{" "}
-                  <strong>{originalQuestion.options[originalQuestion.correct_option - 1]}</strong>
+                  <strong><MathText>{originalQuestion.options[originalQuestion.correct_option - 1]}</MathText></strong>
                 </p>
                 <p>You understood the concept.</p>
               </>
@@ -817,7 +818,7 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
                 <h1>Not quite.</h1>
                 <p>
                   Correct answer:{" "}
-                  <strong>{originalQuestion.options[originalQuestion.correct_option - 1]}</strong>
+                  <strong><MathText>{originalQuestion.options[originalQuestion.correct_option - 1]}</MathText></strong>
                 </p>
                 <p>Review the concept and try again.</p>
               </>
@@ -960,7 +961,15 @@ function GraphCanvas({
   const size = 540;
   const graphPadding = 30;
   const origin = size / 2;
-  const unit = (size - graphPadding * 2) / 20;
+  const plotSize = size - graphPadding * 2;
+  const largestCoordinate = coordinates.reduce(
+    (largest, [x, y]) => Math.max(largest, Math.abs(x), Math.abs(y)),
+    0,
+  );
+  const axisLimit = editable
+    ? 20
+    : Math.max(10, Math.ceil((largestCoordinate + 10) / 10) * 10);
+  const unit = plotSize / (axisLimit * 2);
   const toSvg = ([x, y]: Coordinate) => [origin + x * unit, origin - y * unit];
 
   function movePoint(index: number, event: React.PointerEvent<SVGCircleElement>) {
@@ -973,8 +982,8 @@ function GraphCanvas({
       const x = ((moveEvent.clientX - rect.left) / rect.width) * size;
       const y = ((moveEvent.clientY - rect.top) / rect.height) * size;
       const next: Coordinate = [
-        Math.max(-10, Math.min(10, Math.round(((x - origin) / unit) * 2) / 2)),
-        Math.max(-10, Math.min(10, Math.round(((origin - y) / unit) * 2) / 2)),
+        Math.max(-axisLimit, Math.min(axisLimit, Math.round(((x - origin) / unit) * 2) / 2)),
+        Math.max(-axisLimit, Math.min(axisLimit, Math.round(((origin - y) / unit) * 2) / 2)),
       ];
       onChange(coordinates.map((point, pointIndex) => pointIndex === index ? next : point));
     };
@@ -996,12 +1005,12 @@ function GraphCanvas({
     >
       <rect width={size} height={size} className="graph-background" />
       {Array.from({ length: 21 }, (_, index) => {
-        const position = graphPadding + index * unit;
-        const label = index - 10;
+        const label = -axisLimit + index * (axisLimit / 10);
+        const position = graphPadding + index * (plotSize / 20);
         return <g key={index}>
           <line x1={position} y1="0" x2={position} y2={size} className="graph-grid-line" />
           <line x1="0" y1={position} x2={size} y2={position} className="graph-grid-line" />
-          {label !== 0 && <>
+          {label !== 0 && label % 2 === 0 && <>
             <text x={position} y={origin + 16} textAnchor="middle" className="graph-coordinate-label">{label}</text>
             <text x={origin - 7} y={origin - label * unit + 4} textAnchor="end" className="graph-coordinate-label">{label}</text>
           </>}
@@ -1013,6 +1022,7 @@ function GraphCanvas({
       <text x={size - 18} y={origin - 8} className="graph-axis-label">x</text>
       <text x={origin + 8} y="20" className="graph-axis-label">y</text>
       <text x={origin + 8} y={size - 10} className="graph-axis-label">y&apos;</text>
+      <text x={origin + 8} y={origin + 16} className="graph-axis-label">O</text>
       {coordinates.length >= 3 && <polygon points={coordinates.map(toSvg).map(([x, y]) => `${x},${y}`).join(" ")} className="graph-line" />}
       {coordinates.length === 2 && <polyline points={coordinates.map(toSvg).map(([x, y]) => `${x},${y}`).join(" ")} className="graph-line" />}
       {coordinates.map((point, index) => {
@@ -1065,7 +1075,7 @@ function Quiz({
 
       <section className="quiz-card">
       {question.coordinates && question.coordinates.length > 0 && <GraphCanvas coordinates={question.coordinates} />}
-        <h1>{question.question}</h1>
+        <h1><MathText>{question.question}</MathText></h1>
         <div className="options" role="radiogroup" aria-label="Answer options">
           {question.options.map((option, index) => {
             const number = index + 1;
@@ -1080,7 +1090,7 @@ function Quiz({
                 onClick={() => onSelect(number)}
               >
                 <span className="option-letter">{String.fromCharCode(64 + number)}</span>
-                <span>{option}</span>
+                <MathText>{option}</MathText>
               </button>
             );
           })}
@@ -1092,7 +1102,7 @@ function Quiz({
           ) : (
             <div className="hint">
               <strong>💡 Hint</strong>
-              <span>{question.hint}</span>
+              <MathText>{question.hint}</MathText>
             </div>
           )}
         </div>
@@ -1151,11 +1161,11 @@ function QuestionReview({
             </div>
             <div className="review-content">
               <div className="review-number">Question {item.index + 1}</div>
-              <div className="review-question">{item.question.question}</div>
+              <div className="review-question"><MathText>{item.question.question}</MathText></div>
               {item.selected != null && (
                 <div className="review-answer">
-                  Your answer: <strong>{item.question.options[item.selected - 1]}</strong>
-                  {!item.correct && <> · Correct: <strong>{item.question.options[item.question.correct_option - 1]}</strong></>}
+                  Your answer: <strong><MathText>{item.question.options[item.selected - 1]}</MathText></strong>
+                  {!item.correct && <> · Correct: <strong><MathText>{item.question.options[item.question.correct_option - 1]}</MathText></strong></>}
                 </div>
               )}
             </div>
@@ -1227,15 +1237,15 @@ function LearnAgainResult({
 
               <div className="review-content">
                 <div className="review-number">Question {item.index + 1}</div>
-                <div className="review-question">{item.question.question}</div>
+                <div className="review-question"><MathText>{item.question.question}</MathText></div>
                 <div className="review-answer">
                   Your answer: <strong>
                     {item.selected != null
-                      ? item.question.options[item.selected - 1]
+                      ? <MathText>{item.question.options[item.selected - 1]}</MathText>
                       : "Not answered"}
                   </strong>
                   {!item.correct && (
-                    <> · Right answer: <strong>{item.question.options[item.question.correct_option - 1]}</strong></>
+                    <> · Right answer: <strong><MathText>{item.question.options[item.question.correct_option - 1]}</MathText></strong></>
                   )}
                 </div>
               </div>
@@ -1319,9 +1329,9 @@ function HistoryReview({ historyDetail }: { historyDetail: HistoryDetail }) {
               </div>
               <div className="review-content">
                 <div className="review-number">Question {index + 1}</div>
-                <div className="review-question">{question}</div>
+                <div className="review-question"><MathText>{question}</MathText></div>
                 <div className="review-answer">
-                  Correct answer: <strong>{answersWithFallback[index]}</strong>
+                  Correct answer: <strong><MathText>{answersWithFallback[index]}</MathText></strong>
                 </div>
               </div>
             </article>

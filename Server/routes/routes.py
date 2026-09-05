@@ -3,6 +3,7 @@ import math
 from flask import request
 
 from services.user_services import create_user, login_user
+from services.admin_services import login_admin, get_admin_user_history, get_admin_history_detail
 from services.questionAPI import get_Doubtresponse, get_response
 from services.graphical_question import get_graphical_response
 from services.score_services import add_ScoreDB
@@ -173,6 +174,39 @@ def register_routes(app):
                 "id": user.id,
                 "username": user.username,
             },
+        }, 200
+
+    # -------------------------
+    # ADMIN LOGIN
+    # -------------------------
+
+    @app.route("/AdminLogin", methods=["POST"])
+    def receive_Admin_login_data():
+        data = request.get_json(silent=True) or {}
+        if not isinstance(data, dict):
+            return {"error": "Invalid JSON payload"}, 400
+
+        required_fields = {"Username", "Password"}
+        missing_fields = required_fields - data.keys()
+        if missing_fields:
+            return {"error": f"Missing fields: {sorted(missing_fields)}"}, 400
+
+        username = data.get("Username")
+        password = data.get("Password")
+        if not isinstance(username, str) or not isinstance(password, str):
+            return {"error": "Username and Password must both be strings"}, 400
+
+        admin, error = login_admin(username, password)
+        if error == "Username not found":
+            return {"error": error}, 404
+        if error == "Incorrect password":
+            return {"error": error}, 401
+        if error:
+            return {"error": error}, 500
+
+        return {
+            "message": "Admin login successful",
+            "data": {"id": admin.id, "username": admin.username},
         }, 200
         
     # -------------------------
@@ -473,6 +507,59 @@ def register_routes(app):
             return {
                 "error": f"Failed to retrieve history detail: {e}"
             }, 500
+
+    # -------------------------
+    # ADMIN STUDENT HISTORY
+    # -------------------------
+
+    @app.route("/AdminUserHistory", methods=["POST"])
+    def get_admin_user_history_data():
+        data = request.get_json(silent=True) or {}
+        if not isinstance(data, dict):
+            return {"error": "Invalid JSON payload"}, 400
+
+        required_fields = {"AdminUsername", "AdminPassword", "Username"}
+        missing_fields = required_fields - data.keys()
+        if missing_fields:
+            return {"error": f"Missing fields: {sorted(missing_fields)}"}, 400
+
+        history, error = get_admin_user_history(
+            data.get("AdminUsername"),
+            data.get("AdminPassword"),
+            data.get("Username"),
+        )
+        if error == "Username not found" or error == "Incorrect password":
+            return {"error": error}, 401
+        if error:
+            return {"error": error}, 500
+        return {"message": "Admin history retrieved successfully", "data": history}, 200
+
+    @app.route("/AdminHistoryDetail", methods=["POST"])
+    def get_admin_history_detail_data():
+        data = request.get_json(silent=True) or {}
+        if not isinstance(data, dict):
+            return {"error": "Invalid JSON payload"}, 400
+
+        required_fields = {"AdminUsername", "AdminPassword", "Username", "HistoryId"}
+        missing_fields = required_fields - data.keys()
+        if missing_fields:
+            return {"error": f"Missing fields: {sorted(missing_fields)}"}, 400
+        if not isinstance(data.get("HistoryId"), int):
+            return {"error": "HistoryId must be an integer"}, 400
+
+        detail, error = get_admin_history_detail(
+            data.get("AdminUsername"),
+            data.get("AdminPassword"),
+            data.get("Username"),
+            data.get("HistoryId"),
+        )
+        if error == "History entry not found":
+            return {"error": error}, 404
+        if error == "Username not found" or error == "Incorrect password":
+            return {"error": error}, 401
+        if error:
+            return {"error": error}, 500
+        return {"message": "Admin history detail retrieved successfully", "data": detail}, 200
 
         
         

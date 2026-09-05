@@ -21,3 +21,10 @@ class QuestionsNScore(db.Model):
 	wrong_answered_question = db.Column(db.Text, nullable=True)
 	score = db.Column(db.String(80), nullable=True)
 	remarks = db.Column(db.Text, nullable=True) 
+ 
+class Admin(db.Model):
+	__tablename__ = "admin"
+
+	id = db.Column(db.Integer, primary_key=True)
+	username = db.Column(db.String(80), nullable=False, unique=True)
+	password = db.Column(db.String(255), nullable=False)

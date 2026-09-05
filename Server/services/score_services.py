@@ -19,13 +19,11 @@ models = [
     ]
 
 
-
-
 def get_remarks(QuestionJson, wrong_answered_questions, Score):
     prompt = f"""You are a teacher evaluating a student's performance on a computational thinking assessment. The assessment consists of multiple-choice questions, and the student's responses have been recorded. Your task is to provide constructive feedback based on the student's performance.
     The questions are given in the questionJson and the wrong answered questions are given in the wrong_answered_questions. The student's score is given in the Score.
-    Please provide a brief summary of the student's performance, highlighting areas of strength and areas for improvement. Offer specific suggestions for how the student can enhance their understanding of computational thinking concepts.
-    Your feedback should be brief, clear, concise, and encouraging, aiming to motivate the student to continue learning and improving their skills in computational thinking. It shouldn't be a huge paragraph, but rather very brief.
+    Please provide a brief summary of the student's performance, highlighting areas of strength and areas for improvement. Offer specific suggestions for how the student can enhance their understanding of computational thinking concepts. It should be in passive voice.
+    Your feedback should be brief, clear, concise, and coherent for the teachers to understand and use in their instruction to make the student continue learning and improving their skills in computational thinking. It shouldn't be a huge paragraph, but rather very brief in 2 to 3 lines.
     QuestionJson: {QuestionJson}
     Wrong Answered Questions: {wrong_answered_questions}
     Score: {Score}"""

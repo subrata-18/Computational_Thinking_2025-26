@@ -14,6 +14,7 @@
 * { box-sizing: border-box; }
 
 button, input { font: inherit; }
+input { color: #111 !important; }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .55; }
 
@@ -227,7 +228,7 @@ button:disabled { cursor: not-allowed; opacity: .55; }
   border: 0;
   outline: 0;
   background: transparent;
-  color: #fff;
+  color: #111 !important;
 }
 
 .composer input::placeholder { color: #477f83; }
@@ -346,14 +347,11 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .graph-axis-label { fill: #477f83; font-size: 13px; font-weight: 700; }
 .graph-coordinate-label { fill: #477f83; font-size: 9px; }
 .graph-line { fill: none; stroke: #174b50; stroke-width: 2; }
-.graph-point { stroke: #e3fdfd; stroke-width: 2; cursor: default; }
+.graph-point { fill: #174b50 !important; stroke: #e3fdfd; stroke-width: 3; cursor: default; filter: drop-shadow(0 2px 3px rgba(23,75,80,.35)); }
 .graph-canvas.editable .graph-point { cursor: grab; }
 .graph-canvas.editable .graph-point:active { cursor: grabbing; }
-.point-0 { fill: #71c9ce; }
-.point-1 { fill: #a6e3e9; }
-.point-2 { fill: #71c9ce; }
-.point-3 { fill: #a6e3e9; }
-.graph-point-label { fill: #ddd; font-size: 11px; font-weight: 600; }
+.point-0, .point-1, .point-2, .point-3 { fill: #174b50 !important; }
+.graph-point-label { fill: #174b50; font-size: 11px; font-weight: 700; paint-order: stroke; stroke: #e3fdfd; stroke-width: 3px; stroke-linejoin: round; }
 .graph-help { margin: 8px 2px 0; color: var(--muted); font-size: 11px; }
 
 .error {
@@ -762,7 +760,7 @@ button:disabled { cursor: not-allowed; opacity: .55; }
   border-radius: 8px;
   outline: none;
   background: #e3fdfd;
-  color: #fff;
+  color: #111 !important;
 }
 
 .auth-card input:focus {
@@ -1555,4 +1553,37 @@ button:hover:not(:disabled) {
 
 @media (prefers-reduced-motion: reduce) {
   .welcome h1, .welcome p, .graph-line, .graph-point { animation: none !important; }
+}
+
+/* ===== INPUT TEXT VISIBILITY FIX ===== */
+
+input,
+textarea,
+select {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  caret-color: #000000 !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #555555 !important;
+  -webkit-text-fill-color: #555555 !important;
+  opacity: 1 !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+/* Quiz option text */
+.option,
+.answer-option,
+.quiz-option,
+.option-button {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
 }

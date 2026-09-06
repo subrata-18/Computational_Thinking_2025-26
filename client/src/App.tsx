@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { login, postDoubtQuestion, postGraphicalQuestion, postQuestion, postScore, signup, getUserHistory, getHistoryDetail } from "./services/api";
 import { uploadQuestionImage } from "./services/supabase";
 import type { Coordinate, LearnAgainResponse, Question, QuestionResponse, User, HistoryEntry, HistoryDetail } from "./types";
@@ -161,17 +162,29 @@ function App() {
 
 function Landing({ onLogin, onSignup }: { onLogin: () => void; onSignup: () => void }) {
   return (
-    <main className="landing">
-      <div className="landing-content">
-        <div className="logo">nova ai</div>
-        <h1>Learn by understanding.</h1>
-        <p>Ask a question, practice the concept, and discover whether you really understood it.</p>
-        <div className="landing-actions">
-          <button className="primary" onClick={onSignup}>Get started</button>
-          <button className="secondary" onClick={onLogin}>Log in</button>
-        </div>
-      </div>
-    </main>
+    <motion.main
+      className="landing"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.65 }}
+    >
+      <div className="ambient ambient-one" />
+      <div className="ambient ambient-two" />
+      <motion.div
+        className="landing-content"
+        initial={{ opacity: 0, y: 45, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: "spring", stiffness: 90, damping: 15 }}
+      >
+        <motion.div className="logo" initial={{ y: -18 }} animate={{ y: 0 }} transition={{ delay: 0.15 }}>nova ai</motion.div>
+        <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>Learn by understanding.</motion.h1>
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>Ask a question, practice the concept, and discover whether you really understood it.</motion.p>
+        <motion.div className="landing-actions" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+          <motion.button whileHover={{ scale: 1.045, y: -3 }} whileTap={{ scale: 0.97 }} className="primary" onClick={onSignup}>Get started</motion.button>
+          <motion.button whileHover={{ scale: 1.045, y: -3 }} whileTap={{ scale: 0.97 }} className="secondary" onClick={onLogin}>Log in</motion.button>
+        </motion.div>
+      </motion.div>
+    </motion.main>
   );
 }
 
@@ -219,11 +232,11 @@ function Auth({
   }
 
   return (
-    <main className="auth-page">
-      <form className="auth-card" onSubmit={submit}>
-        <button type="button" className="back" onClick={onBack}>← Back</button>
-        <div className="logo">nova ai</div>
-        <h1>{isLogin ? "Welcome back" : "Create your account"}</h1>
+    <motion.main className="auth-page" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }}>
+      <motion.form className="auth-card" onSubmit={submit} initial={{ opacity: 0, y: 35, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 100, damping: 16 }}>
+        <motion.button type="button" className="back" onClick={onBack} whileHover={{ x: -4 }} whileTap={{ scale: 0.96 }}>← Back</motion.button>
+        <motion.div className="logo" initial={{ scale: 0.7, rotate: -8 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 160 }}>nova ai</motion.div>
+        <motion.h1 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>{isLogin ? "Welcome back" : "Create your account"}</motion.h1>
         <p className="muted">{isLogin ? "Log in to continue learning." : "Start your learning journey."}</p>
 
         <label htmlFor="username">Username
@@ -249,15 +262,17 @@ function Auth({
           />
         </label>
 
-        {error && <div className="error" role="alert">{error}</div>}
-        <button className="primary full" disabled={loading}>
+        <AnimatePresence mode="wait">
+          {error && <motion.div className="error" role="alert" initial={{ opacity: 0, height: 0, y: -8 }} animate={{ opacity: 1, height: "auto", y: 0 }} exit={{ opacity: 0, height: 0, y: -8 }}> {error}</motion.div>}
+        </AnimatePresence>
+        <motion.button whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }} className="primary full" disabled={loading}>
           {loading ? (isLogin ? "Signing in..." : "Creating account...") : isLogin ? "Log in" : "Create account"}
-        </button>
-        <button type="button" className="switch-auth" onClick={onSwitch} disabled={loading}>
+        </motion.button>
+        <motion.button whileHover={{ y: -1 }} type="button" className="switch-auth" onClick={onSwitch} disabled={loading}>
           {isLogin ? "Don't have an account? Sign up" : "Already have an account? Log in"}
-        </button>
-      </form>
-    </main>
+        </motion.button>
+      </motion.form>
+    </motion.main>
   );
 }
 
@@ -602,6 +617,8 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
 
   return (
     <div className={`app-shell ${sidebarOpen ? "sidebar-open" : "sidebar-closed"}`}>
+      <motion.div className="ambient ambient-app-one" animate={{ x: [0, 35, 0], y: [0, -20, 0] }} transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }} />
+      <motion.div className="ambient ambient-app-two" animate={{ x: [0, -28, 0], y: [0, 25, 0] }} transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }} />
       <button
         type="button"
         className={`sidebar-toggle ${sidebarOpen ? "is-open" : ""}`}
@@ -623,7 +640,7 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
         />
       )}
 
-      <aside className="sidebar" aria-hidden={!sidebarOpen}>
+      <motion.aside className="sidebar" aria-hidden={!sidebarOpen} initial={false} animate={{ x: sidebarOpen ? 0 : -18, opacity: sidebarOpen ? 1 : 0.85 }} transition={{ type: "spring", stiffness: 240, damping: 26 }}>
         <div className="brand">nova ai</div>
         <button className="new-chat" onClick={newChat}>＋ New Chat</button>
 
@@ -670,11 +687,12 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
           <div className="username" title={user.username}>{user.username}</div>
           <button className="logout" onClick={onLogout}>Log out</button>
         </div>
-      </aside>
+      </motion.aside>
 
       <main className="main">
+        <AnimatePresence mode="wait" initial={false}>
         {stage === "home" && (
-          <div className="home-content">
+          <motion.div key="home" className="home-content" initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45, ease: "easeOut" }}>
             <div className="welcome">
               <h1>Hi, {user.username} 👋</h1>
               <p>“{quote}”</p>
@@ -707,14 +725,15 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
                 </p>
               )}
             </div>
-          </div>
+          </motion.div>
         )}
 
         {stage === "loading" && (
-          <LoadingState message={loadingMessage} />
+          <motion.div key="loading" initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} transition={{ type: "spring", stiffness: 120, damping: 18 }}><LoadingState message={loadingMessage} /></motion.div>
         )}
 
         {stage === "quiz" && questions[current] && (
+          <motion.div key={`quiz-${current}`} initial={{ opacity: 0, x: 55, scale: 0.98 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={{ opacity: 0, x: -55, scale: 0.98 }} transition={{ type: "spring", stiffness: 120, damping: 20 }}>
           <Quiz
             question={questions[current]}
             current={current}
@@ -727,10 +746,11 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
             onNext={nextQuestion}
             onPrevious={previousQuestion}
           />
+          </motion.div>
         )}
 
         {stage === "result" && (
-          <div className="result-page">
+          <motion.div key="result" className="result-page" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -25 }} transition={{ duration: 0.5 }}>
             <div className="result-card">
               <span className="eyebrow">Practice complete</span>
               <h1>Quiz Complete!</h1>
@@ -758,10 +778,11 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
             )}
 
             <button className="primary result-next" onClick={startOriginal}>Try Original Question</button>
-          </div>
+          </motion.div>
         )}
 
         {stage === "learnAgain" && learnQuestions[learnCurrent] && (
+          <motion.div key={`learn-${learnCurrent}`} initial={{ opacity: 0, x: 55, scale: 0.98 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={{ opacity: 0, x: -55, scale: 0.98 }} transition={{ type: "spring", stiffness: 120, damping: 20 }}>
           <Quiz
             question={learnQuestions[learnCurrent]}
             current={learnCurrent}
@@ -782,9 +803,11 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
               }
             }}
           />
+          </motion.div>
         )}
 
         {stage === "original" && originalQuestion && (
+          <motion.div key="original" initial={{ opacity: 0, scale: 0.96, y: 25 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 1.03 }} transition={{ type: "spring", stiffness: 110, damping: 18 }}>
           <Quiz
             question={originalQuestion}
             current={0}
@@ -798,10 +821,11 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
             onNext={submitOriginal}
             onPrevious={() => setStage("result")}
           />
+          </motion.div>
         )}
 
         {stage === "evaluation" && originalQuestion && finalAnswer != null && (
-          <div className="result-card final-result">
+          <motion.div key="evaluation" className="result-card final-result" initial={{ opacity: 0, scale: 0.82, y: 35 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ type: "spring", stiffness: 120, damping: 16 }}>
             {finalAnswer === originalQuestion.correct_option ? (
               <>
                 <div className="result-icon">✓</div>
@@ -824,11 +848,11 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
               </>
             )}
             <button className="primary" onClick={newChat}>Start New Chat</button>
-          </div>
+          </motion.div>
         )}
 
         {stage === "history_view" && currentHistoryDetail && (
-          <div className="result-page history-result">
+          <motion.div key="history" className="result-page history-result" initial={{ opacity: 0, y: 25 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }}>
             <div className="result-card">
               <span className="eyebrow">History Entry</span>
               <h1>Quiz Result</h1>
@@ -848,8 +872,9 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
             <HistoryReview historyDetail={currentHistoryDetail} />
 
             <button className="primary result-next" onClick={newChat}>Back to Home</button>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </main>
     </div>
   );
@@ -857,11 +882,11 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
 
 function LoadingState({ message }: { message: string }) {
   return (
-    <div className="center-state" aria-live="polite">
-      <div className="spinner" aria-hidden="true" />
+    <motion.div className="center-state" aria-live="polite" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <motion.div className="spinner" aria-hidden="true" animate={{ rotate: 360 }} transition={{ duration: 1.1, repeat: Infinity, ease: "linear" }} />
       <h2>{message}</h2>
       <p>Please wait while Nova AI prepares your session.</p>
-    </div>
+    </motion.div>
   );
 }
 
@@ -881,7 +906,7 @@ function Composer({
   graphical: boolean;
 }) {
   return (
-    <div className="composer">
+    <motion.div className="composer" whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 250, damping: 20 }}>
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -905,8 +930,8 @@ function Composer({
           disabled={disabled}
         />
       </label>}
-      <button className="send" onClick={onSubmit} disabled={disabled} aria-label="Send">➤</button>
-    </div>
+      <motion.button className="send" whileHover={{ scale: 1.08, rotate: -5 }} whileTap={{ scale: 0.9 }} onClick={onSubmit} disabled={disabled} aria-label="Send">➤</motion.button>
+    </motion.div>
   );
 }
 
@@ -918,7 +943,7 @@ function GraphEditor({
   onChange: (coordinates: Coordinate[]) => void;
 }) {
   return (
-    <div className="graph-editor">
+    <motion.div className="graph-editor" initial={{ opacity: 0, height: 0, y: -10 }} animate={{ opacity: 1, height: "auto", y: 0 }} exit={{ opacity: 0, height: 0 }} transition={{ type: "spring", stiffness: 150, damping: 20 }}>
       <div className="graph-editor-header">
         <div>
           <strong>Graph</strong>
@@ -945,7 +970,7 @@ function GraphEditor({
       </div>
       <GraphCanvas coordinates={coordinates} editable onChange={onChange} />
       <p className="graph-help">Drag points to place them on the 20 × 20 grid.</p>
-    </div>
+    </motion.div>
   );
 }
 
@@ -1061,8 +1086,8 @@ function Quiz({
   onPrevious: () => void;
 }) {
   return (
-    <div className="quiz-page">
-      <div className="quiz-header">
+    <motion.div className="quiz-page" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+      <motion.div className="quiz-header" initial={{ y: -14, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.35 }}>
         <span>
           {finalQuestion
             ? "Your original question"
@@ -1071,18 +1096,21 @@ function Quiz({
               : `Question ${current + 1} of ${total}`}
         </span>
         {!finalQuestion && <div className="progress-track"><div style={{ width: `${progress}%` }} /></div>}
-      </div>
+      </motion.div>
 
-      <section className="quiz-card">
+      <motion.section className="quiz-card" layout transition={{ type: "spring", stiffness: 170, damping: 24 }}>
       {question.coordinates && question.coordinates.length > 0 && <GraphCanvas coordinates={question.coordinates} />}
         <h1><MathText>{question.question}</MathText></h1>
-        <div className="options" role="radiogroup" aria-label="Answer options">
+        <motion.div className="options" role="radiogroup" aria-label="Answer options" variants={{ show: { transition: { staggerChildren: 0.07 } } }} initial="hidden" animate="show">
           {question.options.map((option, index) => {
             const number = index + 1;
             const selectedClass = selected === number ? " selected" : "";
             return (
-              <button
+              <motion.button
                 key={`${number}-${option}`}
+                variants={{ hidden: { opacity: 0, x: -20 }, show: { opacity: 1, x: 0 } }}
+                whileHover={{ scale: 1.018, x: 5 }}
+                whileTap={{ scale: 0.985 }}
                 type="button"
                 role="radio"
                 aria-checked={selected === number}
@@ -1091,19 +1119,19 @@ function Quiz({
               >
                 <span className="option-letter">{String.fromCharCode(64 + number)}</span>
                 <MathText>{option}</MathText>
-              </button>
+              </motion.button>
             );
           })}
-        </div>
+        </motion.div>
 
         <div className="hint-area">
           {!showHint ? (
             <button type="button" className="hint-button" onClick={onHint}>💡 Need a hint?</button>
           ) : (
-            <div className="hint">
+            <motion.div className="hint" initial={{ opacity: 0, height: 0, y: 8 }} animate={{ opacity: 1, height: "auto", y: 0 }} transition={{ type: "spring", stiffness: 170, damping: 20 }}>
               <strong>💡 Hint</strong>
               <MathText>{question.hint}</MathText>
-            </div>
+            </motion.div>
           )}
         </div>
 
@@ -1111,17 +1139,19 @@ function Quiz({
           {current > 0 || finalQuestion ? (
             <button type="button" className="secondary" onClick={onPrevious}>← Previous</button>
           ) : <span />}
-          <button
+          <motion.button
             type="button"
+            whileHover={{ scale: 1.035, y: -2 }}
+            whileTap={{ scale: 0.97 }}
             className="primary"
             onClick={onNext}
             disabled={selected == null}
           >
             {finalQuestion ? "Submit Answer" : current === total - 1 ? "Finish →" : "Next →"}
-          </button>
+          </motion.button>
         </div>
-      </section>
-    </div>
+      </motion.section>
+    </motion.div>
   );
 }
 
@@ -1154,8 +1184,8 @@ function QuestionReview({
       </div>
 
       <div className="review-list">
-        {review.map((item) => (
-          <article className="review-item" key={item.index}>
+        {review.map((item, index) => (
+          <motion.article className="review-item" key={item.index} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.06, duration: 0.35 }} whileHover={{ y: -3, scale: 1.005 }}>
             <div className={`review-status ${item.correct ? "correct" : "incorrect"}`} aria-label={item.correct ? "Correct" : "Incorrect"}>
               {item.correct ? "✓" : "×"}
             </div>
@@ -1179,7 +1209,7 @@ function QuestionReview({
                 {loadingIndex === item.index ? "Preparing..." : "Learn Again"}
               </button>
             )}
-          </article>
+          </motion.article>
         ))}
       </div>
     </section>
@@ -1226,8 +1256,8 @@ function LearnAgainResult({
         </div>
 
         <div className="review-list">
-          {review.map((item) => (
-            <article className="review-item learn-review-item" key={item.index}>
+          {review.map((item, index) => (
+            <motion.article className="review-item learn-review-item" key={item.index} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.06, duration: 0.35 }} whileHover={{ y: -3, scale: 1.005 }}>
               <div
                 className={`review-status ${item.correct ? "correct" : "incorrect"}`}
                 aria-label={item.correct ? "Correct" : "Incorrect"}
@@ -1249,7 +1279,7 @@ function LearnAgainResult({
                   )}
                 </div>
               </div>
-            </article>
+            </motion.article>
           ))}
         </div>
       </div>

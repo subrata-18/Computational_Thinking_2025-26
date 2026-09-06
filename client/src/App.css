@@ -1608,3 +1608,8 @@ select:focus {
     z-index: 950 !important;
   }
 }
+.graph-editor button {
+  color: #174B50 !important;
+  -webkit-text-fill-color: #174B50 !important;
+  opacity: 1 !important;
+}

@@ -639,8 +639,8 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
           aria-label="Close sidebar"
         />
       )}
-
-      <motion.aside className="sidebar" aria-hidden={!sidebarOpen} initial={false} animate={{ x: sidebarOpen ? 0 : -18, opacity: sidebarOpen ? 1 : 0.85 }} transition={{ type: "spring", stiffness: 240, damping: 26 }}>
+<motion.aside className="sidebar" aria-hidden={!sidebarOpen} initial={false} animate={{ opacity: sidebarOpen ? 1 : 0.85 }} transition={{ type: "spring", stiffness: 240, damping: 26 }}>
+      
         <div className="brand">nova ai</div>
         <button className="new-chat" onClick={newChat}>＋ New Chat</button>
 

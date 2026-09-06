@@ -1587,3 +1587,24 @@ select:focus {
   color: #000000 !important;
   -webkit-text-fill-color: #000000 !important;
 }
+/* MOBILE SIDEBAR FIX */
+@media (max-width: 700px) {
+  .sidebar-toggle {
+    position: fixed !important;
+    top: 8px !important;
+    left: 12px !important;
+    z-index: 1000 !important;
+    display: grid !important;
+    width: 40px !important;
+    height: 40px !important;
+    pointer-events: auto !important;
+  }
+
+  .sidebar-backdrop {
+    z-index: 900 !important;
+  }
+
+  .sidebar {
+    z-index: 950 !important;
+  }
+}

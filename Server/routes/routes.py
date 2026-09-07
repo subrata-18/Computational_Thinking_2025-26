@@ -51,10 +51,11 @@ def register_routes(app):
 
         required_fields = {
             "Username",
-            "NewPassword"
+            "NewPassword",
+            "Standard",
         }
 
-        allowed_fields = required_fields
+        allowed_fields = {"Username", "NewPassword", "Standard"}
 
         missing_fields = required_fields - NewUserdata.keys()
         extra_fields = set(NewUserdata.keys()) - allowed_fields
@@ -71,6 +72,7 @@ def register_routes(app):
 
         local_username = NewUserdata["Username"]
         local_password = NewUserdata["NewPassword"]
+        local_standard = NewUserdata["Standard"]
 
         if (
             not isinstance(local_username, str)
@@ -80,10 +82,16 @@ def register_routes(app):
                 "error": "Username and NewPassword must both be strings"
             }, 400
 
+        if not isinstance(local_standard, int) or local_standard not in range(6, 13):
+            return {
+                "error": "Standard must be an integer between 6 and 12"
+            }, 400
+
         # Call service
         user, error = create_user(
             local_username,
-            local_password
+            local_password,
+            local_standard,
         )
 
         if error == "Username already exists":

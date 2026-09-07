@@ -26,6 +26,44 @@ const quotes = [
   "Curiosity is the beginning of understanding.",
 ];
 
+// Floating math symbols for decorative background
+const MATH_SYMBOLS = [
+  { char: "∑", size: 110, left: 5,  delay: 0,    duration: 18 },
+  { char: "∫", size: 130, left: 15, delay: 3,    duration: 22 },
+  { char: "π",  size: 95,  left: 28, delay: 6,    duration: 16 },
+  { char: "√",  size: 105, left: 42, delay: 1.5,  duration: 20 },
+  { char: "∞",  size: 90,  left: 58, delay: 9,    duration: 25 },
+  { char: "Δ",  size: 100, left: 72, delay: 4,    duration: 19 },
+  { char: "θ",  size: 85,  left: 85, delay: 7,    duration: 21 },
+  { char: "λ",  size: 115, left: 93, delay: 2,    duration: 17 },
+  { char: "∂",  size: 92,  left: 35, delay: 11,   duration: 23 },
+  { char: "≠",  size: 88,  left: 65, delay: 5,    duration: 15 },
+  { char: "∇",  size: 108, left: 50, delay: 13,   duration: 24 },
+  { char: "∈",  size: 82,  left: 78, delay: 8,    duration: 20 },
+];
+
+function MathBackground() {
+  return (
+    <div className="math-bg" aria-hidden="true">
+      {MATH_SYMBOLS.map((sym, i) => (
+        <span
+          key={i}
+          className="math-symbol"
+          style={{
+            left: `${sym.left}%`,
+            bottom: "-80px",
+            fontSize: `${sym.size}px`,
+            animationDuration: `${sym.duration}s`,
+            animationDelay: `${sym.delay}s`,
+          }}
+        >
+          {sym.char}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function readStoredSession(): User | null {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
@@ -60,6 +98,7 @@ function isQuestion(value: unknown): value is Question {
   const options = value.options;
   const hint = value.hint;
   const correctOption = value.correct_option;
+  const solution = "solution" in value ? value.solution : undefined;
   const coordinates = "coordinates" in value ? value.coordinates : undefined;
 
   return (
@@ -73,6 +112,7 @@ function isQuestion(value: unknown): value is Question {
     Number.isInteger(correctOption) &&
     correctOption >= 1 &&
     correctOption <= 4 &&
+    (solution === undefined || typeof solution === "string") &&
     (coordinates === undefined || (
       Array.isArray(coordinates) &&
       coordinates.length <= 4 &&
@@ -168,6 +208,7 @@ function Landing({ onLogin, onSignup }: { onLogin: () => void; onSignup: () => v
       animate={{ opacity: 1 }}
       transition={{ duration: 0.65 }}
     >
+      <MathBackground />
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
       <motion.div
@@ -176,12 +217,47 @@ function Landing({ onLogin, onSignup }: { onLogin: () => void; onSignup: () => v
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: "spring", stiffness: 90, damping: 15 }}
       >
-        <motion.div className="logo" initial={{ y: -18 }} animate={{ y: 0 }} transition={{ delay: 0.15 }}>nova ai</motion.div>
-        <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>Learn by understanding.</motion.h1>
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>Ask a question, practice the concept, and discover whether you really understood it.</motion.p>
+        <motion.div
+          className="logo"
+          initial={{ y: -18, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.15 }}
+        >
+          <span className="logo-icon">∑</span>
+          nova ai
+        </motion.div>
+
+        <motion.p
+          className="landing-formula"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          f(x) = ∫₀ˣ g(t) dt &nbsp;·&nbsp; lim(n→∞) (1 + 1/n)ⁿ = e &nbsp;·&nbsp; ∇²φ = ρ/ε₀
+        </motion.p>
+
+        <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+          Learn by <span>understanding.</span>
+        </motion.h1>
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
+          Ask any question, practice the concept through AI-generated scaffolding, and discover whether you truly understood it.
+        </motion.p>
         <motion.div className="landing-actions" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
           <motion.button whileHover={{ scale: 1.045, y: -3 }} whileTap={{ scale: 0.97 }} className="primary" onClick={onSignup}>Get started</motion.button>
           <motion.button whileHover={{ scale: 1.045, y: -3 }} whileTap={{ scale: 0.97 }} className="secondary" onClick={onLogin}>Log in</motion.button>
+        </motion.div>
+
+        <motion.div
+          className="landing-pills"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.65 }}
+        >
+          <span className="landing-pill"><span>∑</span>Scaffolded MCQs</span>
+          <span className="landing-pill"><span>∫</span>Step-by-step hints</span>
+          <span className="landing-pill"><span>π</span>Graph mode</span>
+          <span className="landing-pill"><span>Δ</span>Learn Again</span>
+          <span className="landing-pill"><span>√</span>AI-powered feedback</span>
         </motion.div>
       </motion.div>
     </motion.main>
@@ -202,6 +278,7 @@ function Auth({
   const isLogin = mode === "login";
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [standard, setStandard] = useState<number | "">("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -215,11 +292,16 @@ function Auth({
       return;
     }
 
+    if (!isLogin && (standard === "" || standard < 6 || standard > 12)) {
+      setError("Please select your class (6 – 12).");
+      return;
+    }
+
     setLoading(true);
     try {
       const response = isLogin
         ? await login(cleanUsername, password)
-        : await signup(cleanUsername, password);
+        : await signup(cleanUsername, password, standard as number);
       if (!response.data || typeof response.data.username !== "string") {
         throw new Error("Nova AI returned an invalid account response.");
       }
@@ -233,9 +315,13 @@ function Auth({
 
   return (
     <motion.main className="auth-page" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }}>
+      <MathBackground />
       <motion.form className="auth-card" onSubmit={submit} initial={{ opacity: 0, y: 35, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 100, damping: 16 }}>
         <motion.button type="button" className="back" onClick={onBack} whileHover={{ x: -4 }} whileTap={{ scale: 0.96 }}>← Back</motion.button>
-        <motion.div className="logo" initial={{ scale: 0.7, rotate: -8 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 160 }}>nova ai</motion.div>
+        <motion.div className="logo" initial={{ scale: 0.7, rotate: -8 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 160 }}>
+          <span className="logo-icon">∑</span>
+          nova ai
+        </motion.div>
         <motion.h1 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>{isLogin ? "Welcome back" : "Create your account"}</motion.h1>
         <p className="muted">{isLogin ? "Log in to continue learning." : "Start your learning journey."}</p>
 
@@ -261,6 +347,23 @@ function Auth({
             disabled={loading}
           />
         </label>
+
+        {!isLogin && (
+          <label htmlFor="standard">Class / Standard
+            <select
+              id="standard"
+              value={standard}
+              onChange={(event) => setStandard(event.target.value === "" ? "" : Number(event.target.value))}
+              disabled={loading}
+              aria-required="true"
+            >
+              <option value="">Select your class</option>
+              {[6, 7, 8, 9, 10, 11, 12].map((cls) => (
+                <option key={cls} value={cls}>Class {cls}</option>
+              ))}
+            </select>
+          </label>
+        )}
 
         <AnimatePresence mode="wait">
           {error && <motion.div className="error" role="alert" initial={{ opacity: 0, height: 0, y: -8 }} animate={{ opacity: 1, height: "auto", y: 0 }} exit={{ opacity: 0, height: 0, y: -8 }}> {error}</motion.div>}
@@ -619,6 +722,7 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
     <div className={`app-shell ${sidebarOpen ? "sidebar-open" : "sidebar-closed"}`}>
       <motion.div className="ambient ambient-app-one" animate={{ x: [0, 35, 0], y: [0, -20, 0] }} transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }} />
       <motion.div className="ambient ambient-app-two" animate={{ x: [0, -28, 0], y: [0, 25, 0] }} transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }} />
+      <MathBackground />
       <button
         type="button"
         className={`sidebar-toggle ${sidebarOpen ? "is-open" : ""}`}
@@ -641,7 +745,7 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
       )}
 <motion.aside className="sidebar" aria-hidden={!sidebarOpen} initial={false} animate={{ opacity: sidebarOpen ? 1 : 0.85 }} transition={{ type: "spring", stiffness: 240, damping: 26 }}>
       
-        <div className="brand">nova ai</div>
+        <div className="brand"><span className="brand-icon">∑</span>nova ai</div>
         <button className="new-chat" onClick={newChat}>＋ New Chat</button>
 
         <div className="mode-switcher" aria-label="Question mode">
@@ -828,7 +932,7 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
           <motion.div key="evaluation" className="result-card final-result" initial={{ opacity: 0, scale: 0.82, y: 35 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ type: "spring", stiffness: 120, damping: 16 }}>
             {finalAnswer === originalQuestion.correct_option ? (
               <>
-                <div className="result-icon">✓</div>
+                <div className="result-icon correct-icon">✓</div>
                 <h1>Correct! 🎉</h1>
                 <p>
                   Correct answer:{" "}
@@ -838,7 +942,7 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
               </>
             ) : (
               <>
-                <div className="result-icon">×</div>
+                <div className="result-icon incorrect-icon">×</div>
                 <h1>Not quite.</h1>
                 <p>
                   Correct answer:{" "}
@@ -846,6 +950,12 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
                 </p>
                 <p>Review the concept and try again.</p>
               </>
+            )}
+            {originalQuestion.solution && (
+              <div className="solution-block">
+                <div className="solution-label">Solution</div>
+                <p>{originalQuestion.solution}</p>
+              </div>
             )}
             <button className="primary" onClick={newChat}>Start New Chat</button>
           </motion.div>
@@ -883,7 +993,12 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
 function LoadingState({ message }: { message: string }) {
   return (
     <motion.div className="center-state" aria-live="polite" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <motion.div className="spinner" aria-hidden="true" animate={{ rotate: 360 }} transition={{ duration: 1.1, repeat: Infinity, ease: "linear" }} />
+      <motion.div
+        className="spinner"
+        aria-hidden="true"
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1.1, repeat: Infinity, ease: "linear" }}
+      />
       <h2>{message}</h2>
       <p>Please wait while Nova AI prepares your session.</p>
     </motion.div>

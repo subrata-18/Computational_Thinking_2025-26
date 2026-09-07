@@ -13,6 +13,7 @@ export type Question = {
   options: string[];
   hint: string;
   correct_option: number;
+  solution?: string;
   coordinates?: Coordinate[];
 };
 

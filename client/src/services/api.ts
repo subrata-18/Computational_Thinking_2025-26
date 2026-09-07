@@ -88,10 +88,10 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   return data as T;
 }
 
-export function signup(username: string, password: string): Promise<AuthResponse> {
+export function signup(username: string, password: string, standard: number): Promise<AuthResponse> {
   return request<AuthResponse>("/NewUser_login", {
     method: "POST",
-    body: JSON.stringify({ Username: username, NewPassword: password }),
+    body: JSON.stringify({ Username: username, NewPassword: password, Standard: standard }),
   });
 }
 

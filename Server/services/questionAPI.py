@@ -161,13 +161,17 @@ response_schema1 = {
                         "type": "integer",
                         "minimum": 1,
                         "maximum": 4
+                    },
+                    "solution": {
+                        "type": "string"
                     }
                 },
                 "required": [
                     "question",
                     "options",
                     "hint",
-                    "correct_option"
+                    "correct_option",
+                    "solution"
                 ]
             }
         },

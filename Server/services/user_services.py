@@ -21,7 +21,7 @@ def verify_password(password: str, password_hash: str) -> bool:
         return False
 
 
-def create_user(username, password):
+def create_user(username, password, standard=None):
     # Check if username already exists
     try:
         existing_user = User.query.filter_by(
@@ -38,7 +38,8 @@ def create_user(username, password):
 
     user = User(
         username=username,
-        password=password_hash
+        password=password_hash,
+        standard=standard,
     )
 
     try:

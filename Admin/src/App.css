@@ -33,10 +33,10 @@ input:focus { border-color: #666; }
 .search-form .primary { flex-shrink: 0; }
 .history-panel, .detail-section, .remarks { margin-top: 34px; }
 .section-heading h2 { margin: 0; font-size: 20px; }
-.history-list, .review-list { display: grid; gap: 8px; margin-top: 14px; }
-.history-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: #101012; color: var(--text); text-align: left; }
+.history-list, .review-list { display: grid; gap: 8px; min-width: 0; margin-top: 14px; }
+.history-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; min-width: 0; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: #101012; color: var(--text); text-align: left; }
 .history-item:hover { border-color: #5a5a62; background: #17171a; }
-.history-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.history-item span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .history-item small { flex-shrink: 0; color: var(--muted); }
 .empty-state { margin-top: 34px; padding: 28px; border: 1px dashed var(--border); color: var(--muted); text-align: center; }
 .back-button { margin-bottom: 18px; padding: 0; }
@@ -47,10 +47,14 @@ input:focus { border-color: #666; }
 .progress div { height: 100%; background: #eee; }
 .result-card p { margin: 10px 0 0; color: var(--muted); }
 .detail-section h2 { margin: 8px 0; font-size: 21px; line-height: 1.4; }
-.review-item { padding: 15px; border: 1px solid var(--border); border-radius: 10px; background: #101012; }
+.review-item { display: flex; align-items: flex-start; gap: 13px; padding: 15px; border: 1px solid var(--border); border-radius: 10px; background: #101012; }
+.review-status { width: 30px; height: 30px; flex: 0 0 30px; display: grid; place-items: center; border: 1px solid #38383d; border-radius: 50%; font-size: 17px; }
+.review-status.correct { color: #9cc9a5; }
+.review-status.incorrect { color: #d5aaaa; }
+.review-content { min-width: 0; flex: 1; }
 .review-number { margin-bottom: 5px; color: #6f6f76; font-size: 12px; }
-.review-question { line-height: 1.45; }
-.review-answer { margin-top: 8px; color: #777; font-size: 13px; }
+.review-question { overflow-wrap: anywhere; line-height: 1.45; }
+.review-answer { margin-top: 8px; color: #777; font-size: 13px; overflow-wrap: anywhere; }
 .review-answer strong { color: #ddd; font-weight: 500; }
 .remarks { padding: 20px; border: 1px solid #3b3924; border-radius: 11px; background: #17160f; }
 .remarks p { margin: 8px 0 0; color: #d3ceaa; line-height: 1.6; }

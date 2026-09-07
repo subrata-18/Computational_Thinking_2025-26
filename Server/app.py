@@ -31,6 +31,15 @@ register_routes(app)
 try:
     with app.app_context():
         db.create_all()
+        # Migrate: add `standard` column to `users` if it doesn't exist yet.
+        # db.create_all() only creates new tables, never alters existing ones.
+        with db.engine.connect() as conn:
+            from sqlalchemy import text, inspect
+            inspector = inspect(db.engine)
+            existing_columns = [col["name"] for col in inspector.get_columns("users")]
+            if "standard" not in existing_columns:
+                conn.execute(text("ALTER TABLE users ADD COLUMN standard INTEGER"))
+                conn.commit()
 except Exception as e:
     print(f"Error creating database tables: {e}")
 

@@ -132,6 +132,21 @@ export function postGraphicalQuestion(
   });
 }
 
+export function postScienceQuestion(
+  username: string,
+  question: string,
+  imagePath = "",
+): Promise<QuestionResponse> {
+  return request<QuestionResponse>("/ScienceQuestionPost", {
+    method: "POST",
+    body: JSON.stringify({
+      Username: username,
+      Question: question,
+      Image_path: imagePath,
+    }),
+  });
+}
+
 export function postScore(
   username: string,
   questionJson: string,

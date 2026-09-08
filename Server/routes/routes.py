@@ -6,6 +6,7 @@ from services.user_services import create_user, login_user
 from services.admin_services import login_admin, get_admin_user_history, get_admin_history_detail
 from services.questionAPI import get_Doubtresponse, get_response
 from services.graphical_question import get_graphical_response
+from services.ScienceAPI import get_science_response
 from services.score_services import add_ScoreDB
 from services.history_services import get_user_history, get_history_detail
 
@@ -362,6 +363,36 @@ def register_routes(app):
     
     
     
+    # --------------------------------------
+    # For posting science questions
+    # --------------------------------------
+
+    @app.route("/ScienceQuestionPost", methods=["POST"])
+    def receive_ScienceQuestion_data():
+
+        science_question_data = request.get_json(silent=True) or {}
+
+        if not isinstance(science_question_data, dict):
+            return {"error": "Invalid JSON payload"}, 400
+
+        required_fields = {"Username", "Question", "Image_path"}
+        missing_fields = required_fields - science_question_data.keys()
+
+        if missing_fields:
+            return {"error": f"Missing fields: {sorted(missing_fields)}"}, 400
+
+        username   = science_question_data.get("Username")
+        question   = science_question_data.get("Question")
+        img_path   = science_question_data.get("Image_path")
+
+        try:
+            response = get_science_response(username, question, img_path)
+        except Exception as e:
+            return {"error": f"Failed to get response from Gemini API: {e}"}, 500
+
+        return response, 200
+
+
     # --------------------------------------
     # For getting the Score after the quiz
     # --------------------------------------

@@ -235,7 +235,7 @@ button, input { max-width: 100%; }
 /* ── Mode switcher ── */
 .mode-switcher {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 4px;
   margin-top: 10px;
   padding: 4px;
@@ -805,7 +805,11 @@ button:focus-visible, input:focus-visible {
   font-size: 13px;
   line-height: 1.4;
 }
-.review-answer strong { color: var(--text); font-weight: 600; }
+.review-answer strong {
+  color: var(--text);
+  font-weight: 600;
+  -webkit-text-fill-color: var(--text);
+}
 
 .learn-button {
   flex-shrink: 0;
@@ -1228,6 +1232,8 @@ button:focus-visible, input:focus-visible {
 
 /* ================================================================
    INPUT / BUTTON VISIBILITY — global safety net
+   Only applied to actual form elements, NOT generic containers,
+   so child text nodes in review items / KaTeX spans are not affected.
    ================================================================ */
 input, textarea, select {
   color: var(--text) !important;
@@ -1244,10 +1250,10 @@ input:focus, textarea:focus, select:focus {
   -webkit-text-fill-color: var(--text) !important;
 }
 
-/* Quiz option text always readable */
+/* Quiz option buttons — use color only, NOT -webkit-text-fill-color,
+   so KaTeX child spans can render their own colours correctly. */
 .option, .answer-option, .quiz-option, .option-button {
   color: var(--text) !important;
-  -webkit-text-fill-color: var(--text) !important;
 }
 
 /* ================================================================

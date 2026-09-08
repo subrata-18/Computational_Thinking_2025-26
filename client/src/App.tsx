@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { login, postDoubtQuestion, postGraphicalQuestion, postQuestion, postScore, signup, getUserHistory, getHistoryDetail } from "./services/api";
+import { login, postDoubtQuestion, postGraphicalQuestion, postQuestion, postScienceQuestion, postScore, signup, getUserHistory, getHistoryDetail } from "./services/api";
 import { uploadQuestionImage } from "./services/supabase";
 import type { Coordinate, LearnAgainResponse, Question, QuestionResponse, User, HistoryEntry, HistoryDetail } from "./types";
 import MathText from "./components/MathText";
@@ -8,6 +8,7 @@ import "./App.css";
 
 type Page = "landing" | "login" | "signup" | "app";
 type Stage = "home" | "loading" | "quiz" | "result" | "learnAgain" | "original" | "evaluation" | "history_view";
+type Mode = "standard" | "graphical" | "scientific";
 
 type StoredSession = {
   id: number | string;
@@ -256,6 +257,7 @@ function Landing({ onLogin, onSignup }: { onLogin: () => void; onSignup: () => v
           <span className="landing-pill"><span>∑</span>Scaffolded MCQs</span>
           <span className="landing-pill"><span>∫</span>Step-by-step hints</span>
           <span className="landing-pill"><span>π</span>Graph mode</span>
+          <span className="landing-pill"><span>⚗</span>Science mode</span>
           <span className="landing-pill"><span>Δ</span>Learn Again</span>
           <span className="landing-pill"><span>√</span>AI-powered feedback</span>
         </motion.div>
@@ -386,7 +388,7 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
   const [stage, setStage] = useState<Stage>("home");
   const [quote, setQuote] = useState(() => quotes[Math.floor(Math.random() * quotes.length)]);
   const [questionText, setQuestionText] = useState("");
-  const [mode, setMode] = useState<"standard" | "graphical">("standard");
+  const [mode, setMode] = useState<Mode>("standard");
   const [coordinates, setCoordinates] = useState<Coordinate[]>([]);
   const [image, setImage] = useState<File | null>(null);
   const [imagePath, setImagePath] = useState("");
@@ -546,13 +548,19 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
     setStage("loading");
 
     try {
-      setLoadingMessage(mode === "graphical" ? "Reading your graph..." : "Understanding your question...");
+      setLoadingMessage(
+        mode === "graphical" ? "Reading your graph..." :
+        mode === "scientific" ? "Analysing your science topic..." :
+        "Understanding your question..."
+      );
       await new Promise<void>((resolve) => window.setTimeout(resolve, 100));
       setLoadingMessage("Generating a personalized practice session...");
 
       const rawResponse = mode === "graphical"
         ? await postGraphicalQuestion(user.username, cleanQuestion, coordinates)
-        : await postQuestion(user.username, cleanQuestion, imagePath);
+        : mode === "scientific"
+          ? await postScienceQuestion(user.username, cleanQuestion, imagePath)
+          : await postQuestion(user.username, cleanQuestion, imagePath);
       const response = validateQuestionResponse(rawResponse);
 
       if (!response) {
@@ -755,7 +763,7 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
             aria-pressed={mode === "standard"}
             onClick={() => { setMode("standard"); setCoordinates([]); }}
           >
-            Standard mode
+            Standard
           </button>
           <button
             type="button"
@@ -763,7 +771,15 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
             aria-pressed={mode === "graphical"}
             onClick={() => setMode("graphical")}
           >
-            Graphical mode
+            Graphical
+          </button>
+          <button
+            type="button"
+            className={mode === "scientific" ? "active" : ""}
+            aria-pressed={mode === "scientific"}
+            onClick={() => { setMode("scientific"); setCoordinates([]); }}
+          >
+            Scientific
           </button>
         </div>
         
@@ -822,6 +838,7 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
                 onImage={selectImage}
                 disabled={imageUploading}
                 graphical={mode === "graphical"}
+                scientific={mode === "scientific"}
               />
               {image && (
                 <p className="attachment-name">
@@ -871,7 +888,7 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
               review={review}
               loadingIndex={learnLoadingIndex}
               onLearnAgain={learnAgain}
-              hideLearnAgain={mode === "graphical"}
+              hideLearnAgain={mode === "graphical" || mode === "scientific"}
             />
 
             {showLearnResult && learnQuestions.length > 0 && (
@@ -1012,6 +1029,7 @@ function Composer({
   onImage,
   disabled,
   graphical,
+  scientific,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -1019,7 +1037,12 @@ function Composer({
   onImage: (event: React.ChangeEvent<HTMLInputElement>) => void;
   disabled: boolean;
   graphical: boolean;
+  scientific: boolean;
 }) {
+  const placeholder = scientific
+    ? "Ask a question or a concept to practise..."
+    : "Ask your question...";
+
   return (
     <motion.div className="composer" whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 250, damping: 20 }}>
       <input
@@ -1031,8 +1054,8 @@ function Composer({
             onSubmit();
           }
         }}
-        placeholder="Ask your question..."
-        aria-label="Ask your question"
+        placeholder={placeholder}
+        aria-label={placeholder}
         disabled={disabled}
       />
       {!graphical && <label className="icon-button" aria-label="Upload image">

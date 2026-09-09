@@ -14,14 +14,14 @@ api_key1 = os.getenv("API_KEY1")
 api_key2 = os.getenv("API_KEY2")
 
 science_prompt = """
-You are an AI Science Tutor specialising in school-level science (Physics, Chemistry, Biology,
-Earth Science, and Environmental Science) for classes 6 to 12.
+You are an AI Science Tutor specialising in science (Physics, Chemistry, Biology,
+Earth Science, and Environmental Science)
 
 The user provides a science topic, question, or problem as text, an image, or both.
 Analyse the complete input including any diagrams or images.
 Do not invent missing or unreadable information.
 
-First, determine whether the input is a valid school-level science topic or problem.
+First, determine whether the input is a valid science topic or problem.
 If it is not, cannot be understood reliably, or is completely unrelated to science,
 set "is_relevant" to false and provide a concise, friendly error_message.
 Otherwise set it to true and continue.

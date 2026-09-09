@@ -4,7 +4,7 @@ export const SUPABASE_BUCKET = (import.meta.env.VITE_SUPABASE_BUCKET ?? "Images"
 
 if (!supabaseUrl || !supabaseKey) {
   console.warn(
-    "Nova AI: Supabase browser configuration is missing. Image uploads will be unavailable until VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY are configured.",
+    "Stepwise Prism AI: Supabase browser configuration is missing. Image uploads will be unavailable until VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY are configured.",
   );
 }
 

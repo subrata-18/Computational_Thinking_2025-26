@@ -1,5 +1,5 @@
 /* ============================================================
-   NOVA AI — Mathematical Theme
+   STEPWISE PRISM AI — Mathematical Theme
    Palette: deep navy bg · slate panels · indigo/violet accents
    All text on dark surfaces is light; all text on light is dark.
    ============================================================ */
@@ -199,6 +199,17 @@ button, input { max-width: 100%; }
   align-items: center;
   gap: 6px;
 }
+.brand-name {
+  display: flex;
+  flex-direction: column;
+  line-height: .95;
+}
+.brand-name span:last-child {
+  margin-top: 3px;
+  color: var(--text-2);
+  font-size: .72em;
+  letter-spacing: .01em;
+}
 .brand-icon {
   display: inline-flex;
   align-items: center;
@@ -235,7 +246,7 @@ button, input { max-width: 100%; }
 /* ── Mode switcher ── */
 .mode-switcher {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 4px;
   margin-top: 10px;
   padding: 4px;
@@ -1295,7 +1306,7 @@ input:focus, textarea:focus, select:focus {
     position: fixed;
     inset: 54px auto 0 0;
     z-index: 950 !important;
-    width: min(280px, calc(100vw - 64px));
+    width: min(280px, calc(100vw - 24px));
     height: calc(100dvh - 54px);
     padding: 12px;
     border-right: 1px solid var(--border);
@@ -1304,13 +1315,14 @@ input:focus, textarea:focus, select:focus {
     box-shadow: 20px 0 50px rgba(0,0,0,.5);
   }
   .sidebar-closed .sidebar {
-    width: min(280px, calc(100vw - 64px));
+    width: min(280px, calc(100vw - 24px));
     padding: 12px;
     border-right-color: var(--border);
     transform: translateX(-105%);
   }
 
   .brand { padding: 0 6px 12px; font-size: 18px; white-space: nowrap; }
+  .mode-switcher { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .new-chat { padding: 8px 10px; font-size: 13px; }
   .sidebar-bottom { margin-top: auto; flex-direction: column; align-items: stretch; gap: 4px; }
   .username  { font-size: 12px; padding: 8px 6px; }

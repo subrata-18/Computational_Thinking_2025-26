@@ -22,10 +22,10 @@ export class ApiError extends Error {
 function friendlyHttpMessage(status: number, serverMessage?: string): string {
   if (serverMessage) {
     if (serverMessage.includes("Failed to get response from Gemini API")) {
-      return "Nova AI could not generate a practice session. Please try again.";
+      return "Stepwise Prism AI could not generate a practice session. Please try again.";
     }
     if (serverMessage.includes("Database")) {
-      return "Nova AI is having trouble accessing your account. Please try again.";
+      return "Stepwise Prism AI is having trouble accessing your account. Please try again.";
     }
     return serverMessage;
   }
@@ -40,15 +40,15 @@ function friendlyHttpMessage(status: number, serverMessage?: string): string {
     case 409:
       return "That username already exists.";
     case 500:
-      return "Nova AI is temporarily unavailable. Please try again.";
+      return "Stepwise Prism AI is temporarily unavailable. Please try again.";
     default:
-      return "Unable to connect to Nova AI. Please try again.";
+      return "Unable to connect to Stepwise Prism AI. Please try again.";
   }
 }
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   if (!API_URL) {
-    throw new ApiError("Nova AI is not configured. Set VITE_API_URL in the frontend environment.");
+    throw new ApiError("Stepwise Prism AI is not configured. Set VITE_API_URL in the frontend environment.");
   }
 
   let response: Response;
@@ -61,7 +61,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
       },
     });
   } catch {
-    throw new ApiError("Unable to connect to Nova AI. Please try again.");
+    throw new ApiError("Unable to connect to Stepwise Prism AI. Please try again.");
   }
 
   const raw = await response.text();
@@ -70,7 +70,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     try {
       data = JSON.parse(raw);
     } catch {
-      throw new ApiError("Nova AI returned an invalid response.", response.status);
+      throw new ApiError("Stepwise Prism AI returned an invalid response.", response.status);
     }
   }
 
@@ -128,21 +128,6 @@ export function postGraphicalQuestion(
       Username: username,
       Question: question,
       Coordinates: coordinates,
-    }),
-  });
-}
-
-export function postScienceQuestion(
-  username: string,
-  question: string,
-  imagePath = "",
-): Promise<QuestionResponse> {
-  return request<QuestionResponse>("/ScienceQuestionPost", {
-    method: "POST",
-    body: JSON.stringify({
-      Username: username,
-      Question: question,
-      Image_path: imagePath,
     }),
   });
 }

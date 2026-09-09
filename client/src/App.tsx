@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { login, postDoubtQuestion, postGraphicalQuestion, postQuestion, postScienceQuestion, postScore, signup, getUserHistory, getHistoryDetail } from "./services/api";
+import { login, postDoubtQuestion, postGraphicalQuestion, postQuestion, postScore, signup, getUserHistory, getHistoryDetail } from "./services/api";
 import { uploadQuestionImage } from "./services/supabase";
 import type { Coordinate, LearnAgainResponse, Question, QuestionResponse, User, HistoryEntry, HistoryDetail } from "./types";
 import MathText from "./components/MathText";
@@ -8,7 +8,7 @@ import "./App.css";
 
 type Page = "landing" | "login" | "signup" | "app";
 type Stage = "home" | "loading" | "quiz" | "result" | "learnAgain" | "original" | "evaluation" | "history_view";
-type Mode = "standard" | "graphical" | "scientific";
+type Mode = "standard" | "graphical";
 
 type StoredSession = {
   id: number | string;
@@ -225,7 +225,7 @@ function Landing({ onLogin, onSignup }: { onLogin: () => void; onSignup: () => v
           transition={{ delay: 0.15 }}
         >
           <span className="logo-icon">∑</span>
-          nova ai
+          Stepwise Prism AI
         </motion.div>
 
         <motion.p
@@ -257,7 +257,6 @@ function Landing({ onLogin, onSignup }: { onLogin: () => void; onSignup: () => v
           <span className="landing-pill"><span>∑</span>Scaffolded MCQs</span>
           <span className="landing-pill"><span>∫</span>Step-by-step hints</span>
           <span className="landing-pill"><span>π</span>Graph mode</span>
-          <span className="landing-pill"><span>⚗</span>Science mode</span>
           <span className="landing-pill"><span>Δ</span>Learn Again</span>
           <span className="landing-pill"><span>√</span>AI-powered feedback</span>
         </motion.div>
@@ -305,7 +304,7 @@ function Auth({
         ? await login(cleanUsername, password)
         : await signup(cleanUsername, password, standard as number);
       if (!response.data || typeof response.data.username !== "string") {
-        throw new Error("Nova AI returned an invalid account response.");
+        throw new Error("Stepwise Prism AI returned an invalid account response.");
       }
       onAuthenticated(response.data);
     } catch (err) {
@@ -322,7 +321,7 @@ function Auth({
         <motion.button type="button" className="back" onClick={onBack} whileHover={{ x: -4 }} whileTap={{ scale: 0.96 }}>← Back</motion.button>
         <motion.div className="logo" initial={{ scale: 0.7, rotate: -8 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 160 }}>
           <span className="logo-icon">∑</span>
-          nova ai
+          Stepwise Prism AI
         </motion.div>
         <motion.h1 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>{isLogin ? "Welcome back" : "Create your account"}</motion.h1>
         <p className="muted">{isLogin ? "Log in to continue learning." : "Start your learning journey."}</p>
@@ -550,7 +549,6 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
     try {
       setLoadingMessage(
         mode === "graphical" ? "Reading your graph..." :
-        mode === "scientific" ? "Analysing your science topic..." :
         "Understanding your question..."
       );
       await new Promise<void>((resolve) => window.setTimeout(resolve, 100));
@@ -558,9 +556,7 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
 
       const rawResponse = mode === "graphical"
         ? await postGraphicalQuestion(user.username, cleanQuestion, coordinates)
-        : mode === "scientific"
-          ? await postScienceQuestion(user.username, cleanQuestion, imagePath)
-          : await postQuestion(user.username, cleanQuestion, imagePath);
+        : await postQuestion(user.username, cleanQuestion, imagePath);
       const response = validateQuestionResponse(rawResponse);
 
       if (!response) {
@@ -581,7 +577,7 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
       setShowHint(false);
       setStage("quiz");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to connect to Nova AI. Please try again.");
+      setError(err instanceof Error ? err.message : "Unable to connect to Stepwise Prism AI. Please try again.");
       setStage("home");
     } finally {
       setImageUploading(false);
@@ -753,7 +749,10 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
       )}
 <motion.aside className="sidebar" aria-hidden={!sidebarOpen} initial={false} animate={{ opacity: sidebarOpen ? 1 : 0.85 }} transition={{ type: "spring", stiffness: 240, damping: 26 }}>
       
-        <div className="brand"><span className="brand-icon">∑</span>nova ai</div>
+        <div className="brand">
+          <span className="brand-icon">∑</span>
+          <span className="brand-name"><span>Stepwise</span><span>Prism AI</span></span>
+        </div>
         <button className="new-chat" onClick={newChat}>＋ New Chat</button>
 
         <div className="mode-switcher" aria-label="Question mode">
@@ -772,14 +771,6 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
             onClick={() => setMode("graphical")}
           >
             Graphical
-          </button>
-          <button
-            type="button"
-            className={mode === "scientific" ? "active" : ""}
-            aria-pressed={mode === "scientific"}
-            onClick={() => { setMode("scientific"); setCoordinates([]); }}
-          >
-            Scientific
           </button>
         </div>
         
@@ -838,7 +829,6 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
                 onImage={selectImage}
                 disabled={imageUploading}
                 graphical={mode === "graphical"}
-                scientific={mode === "scientific"}
               />
               {image && (
                 <p className="attachment-name">
@@ -888,7 +878,7 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
               review={review}
               loadingIndex={learnLoadingIndex}
               onLearnAgain={learnAgain}
-              hideLearnAgain={mode === "graphical" || mode === "scientific"}
+              hideLearnAgain={mode === "graphical"}
             />
 
             {showLearnResult && learnQuestions.length > 0 && (
@@ -1017,7 +1007,7 @@ function LoadingState({ message }: { message: string }) {
         transition={{ duration: 1.1, repeat: Infinity, ease: "linear" }}
       />
       <h2>{message}</h2>
-      <p>Please wait while Nova AI prepares your session.</p>
+      <p>Please wait while Stepwise Prism AI prepares your session.</p>
     </motion.div>
   );
 }
@@ -1029,7 +1019,6 @@ function Composer({
   onImage,
   disabled,
   graphical,
-  scientific,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -1037,11 +1026,8 @@ function Composer({
   onImage: (event: React.ChangeEvent<HTMLInputElement>) => void;
   disabled: boolean;
   graphical: boolean;
-  scientific: boolean;
 }) {
-  const placeholder = scientific
-    ? "Ask a question or a concept to practise..."
-    : "Ask your question...";
+  const placeholder = "Ask your question...";
 
   return (
     <motion.div className="composer" whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 250, damping: 20 }}>

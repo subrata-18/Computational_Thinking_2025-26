@@ -1425,3 +1425,221 @@ input:focus, textarea:focus, select:focus {
   .learn-button { min-height: 40px; padding: 9px 10px; }
   .review-question { overflow-wrap: break-word; }
 }
+
+/* ==========================================================================
+   Live Voice Mode & Mic Button Styling
+   ========================================================================== */
+
+/* Microphone button in the composer */
+.voice-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-right: 0.35rem;
+}
+
+.voice-btn:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.18);
+  color: #a5b4fc;
+  border-color: rgba(99, 102, 241, 0.45);
+}
+
+.voice-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Fullscreen Backdrop */
+.voice-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(9, 13, 22, 0.88);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.voice-modal-container {
+  width: 100%;
+  max-width: 580px;
+  height: 80vh;
+  max-height: 720px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+/* Header */
+.voice-modal-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.voice-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #f8fafc;
+  font-size: 1rem;
+}
+
+.voice-brand .logo-icon {
+  color: #818cf8;
+  font-size: 1.25rem;
+}
+
+.voice-close-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.voice-close-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+/* Center Fluid Orb Stage */
+.voice-fluid-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.voice-fluid-glow {
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.45) 0%, rgba(139, 92, 246, 0.25) 50%, transparent 75%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.voice-fluid-core {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 45%, #06b6d4 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 55px rgba(99, 102, 241, 0.55);
+}
+
+.voice-fluid-inner {
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.8), rgba(99, 102, 241, 0.3) 60%, transparent);
+  filter: blur(4px);
+}
+
+.voice-status-pill {
+  margin-top: 2.2rem;
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.status-indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #64748b;
+}
+
+.status-indicator-dot.active {
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+}
+
+/* User Equalizer Bars (Bottom Section) */
+.voice-user-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.voice-user-bars {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 90px;
+}
+
+.voice-bar {
+  width: 6px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #38bdf8 0%, #6366f1 100%);
+  min-height: 14px;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.35);
+}
+
+.voice-user-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.voice-actions {
+  margin-top: 0.5rem;
+}
+
+.voice-end-btn {
+  padding: 0.65rem 1.8rem;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.voice-end-btn:hover {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+}

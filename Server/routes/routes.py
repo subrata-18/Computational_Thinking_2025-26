@@ -1,6 +1,7 @@
 import math
 
 from flask import request
+from flask import render_template
 
 from services.user_services import create_user, login_user
 from services.admin_services import login_admin, get_admin_user_history, get_admin_history_detail
@@ -23,7 +24,7 @@ def is_valid_coordinates(value):
     return True
 
 
-def register_routes(app):
+def register_routes(app, sock):
 
     @app.route("/")
     def home():
@@ -569,6 +570,25 @@ def register_routes(app):
         if error:
             return {"error": error}, 500
         return {"message": "Admin history detail retrieved successfully", "data": detail}, 200
+
+    # -------------------------
+    # VOICE TUTOR WEBSOCKET
+    # -------------------------
+    
+    # Import the new service
+    from services.voice_tutor_service import run_voice_session
+
+    @sock.route("/VoiceTutor")
+    def voice_tutor_route(ws):
+        """
+        This endpoint upgrades the HTTP connection to a WebSocket.
+        It keeps the connection open and streams audio back and forth.
+        """
+        run_voice_session(ws)
+
+    @app.route("/test-voice")
+    def test_voice():
+        return render_template("test_voice.html")
 
         
         

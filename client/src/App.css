@@ -1431,30 +1431,33 @@ input:focus, textarea:focus, select:focus {
    ========================================================================== */
 
 /* Microphone button in the composer */
-.voice-btn {
+.voice-btn-outside {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
-  color: #94a3b8;
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+  color: #818cf8;
   cursor: pointer;
-  transition: all 0.2s ease;
-  margin-right: 0.35rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.voice-btn:hover:not(:disabled) {
-  background: rgba(99, 102, 241, 0.18);
+.voice-btn-outside:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
   color: #a5b4fc;
-  border-color: rgba(99, 102, 241, 0.45);
+  border-color: rgba(99, 102, 241, 0.6);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.25);
 }
 
-.voice-btn:disabled {
+.voice-btn-outside:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.05);
 }
 
 /* Fullscreen Backdrop */
@@ -1642,4 +1645,34 @@ input:focus, textarea:focus, select:focus {
   background: #dc2626;
   color: #ffffff;
   border-color: #dc2626;
+}
+
+.voice-mute-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.voice-mute-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
+}
+
+.voice-mute-btn.muted {
+  background: rgba(245, 158, 11, 0.15); /* Warning Amber */
+  color: #fcd34d;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.voice-mute-btn.muted:hover {
+  background: rgba(245, 158, 11, 0.25);
 }

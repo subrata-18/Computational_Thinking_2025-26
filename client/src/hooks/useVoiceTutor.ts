@@ -26,8 +26,10 @@ export const useVoiceTutor = () => {
   const userAnalyserRef = useRef<AnalyserNode | null>(null);
   const aiAnalyserRef = useRef<AnalyserNode | null>(null);
   const animFrameRef = useRef<number | null>(null);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
 
   const stopSession = useCallback(() => {
+    setIsMuted(false);
     if (animFrameRef.current) {
       cancelAnimationFrame(animFrameRef.current);
       animFrameRef.current = null;
@@ -57,6 +59,16 @@ export const useVoiceTutor = () => {
     setUserBars([15, 15, 15, 15, 15]);
     setAiLevel(0);
     setStatus("Disconnected");
+  }, []);
+
+  const toggleMute = useCallback(() => {
+    if (mediaStreamRef.current) {
+      const track = mediaStreamRef.current.getAudioTracks()[0];
+      if (track) {
+        track.enabled = !track.enabled; // Flips between true and false
+        setIsMuted(!track.enabled);
+      }
+    }
   }, []);
 
   const startSession = useCallback(async () => {
@@ -185,5 +197,5 @@ export const useVoiceTutor = () => {
     }
   }, [stopSession]);
 
-  return { status, isRecording, userBars, aiLevel, startSession, stopSession };
+  return { status, isRecording, userBars, aiLevel, isMuted, startSession, stopSession, toggleMute };
 };

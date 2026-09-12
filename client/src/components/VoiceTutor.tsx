@@ -8,15 +8,12 @@ interface VoiceTutorProps {
   isRecording: boolean;
   userBars: number[];
   aiLevel: number;
+  isMuted: boolean;
+  onToggleMute: () => void;
 }
 
 const VoiceTutor: React.FC<VoiceTutorProps> = ({ 
-  isOpen, 
-  onClose, 
-  status, 
-  isRecording, 
-  userBars, 
-  aiLevel 
+  isOpen, onClose, status, isRecording, userBars, aiLevel, isMuted, onToggleMute 
 }) => {
   
   const isAiSpeaking = aiLevel > 0.04;
@@ -110,10 +107,37 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({
               </div>
               <span className="voice-user-label">Your Voice</span>
 
-              <div className="voice-actions">
+              <div className="voice-actions" style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', alignItems: 'center' }}>
+  
+                {/* 1. End Call Button (Moved to the left) */}
                 <button type="button" className="voice-end-btn" onClick={onClose}>
                   End Call
                 </button>
+
+                {/* 2. Mute Button (Moved to the right, icon only) */}
+                <button 
+                  type="button" 
+                  className={`voice-mute-btn ${isMuted ? 'muted' : ''}`} 
+                  onClick={onToggleMute}
+                  aria-label={isMuted ? "Unmute" : "Mute"}
+                  title={isMuted ? "Unmute" : "Mute"}
+                >
+                  {isMuted ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="1" y1="1" x2="23" y2="23"></line>
+                      <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path>
+                      <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path>
+                      <line x1="12" x2="12" y1="19" y2="22"></line>
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                      <line x1="12" x2="12" y1="19" y2="22"></line>
+                    </svg>
+                  )}
+                </button>
+
               </div>
             </div>
           </div>

@@ -744,6 +744,7 @@ function NovaAI({ user, onLogout }: { user: User; onLogout: () => void }) {
         aiLevel={aiLevel}
         isMuted={isMuted}
         onToggleMute={toggleMute}
+        onReconnect={startSession}
       />
 
       <button

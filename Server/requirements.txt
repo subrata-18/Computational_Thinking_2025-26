@@ -7,3 +7,4 @@ google-genai
 supabase
 gunicorn
 argon2-cffi
+flask-sock

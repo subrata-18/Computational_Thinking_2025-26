@@ -528,10 +528,3 @@ def get_Doubtresponse(username, WrongAnsweredquestion, QuestionJson):
     return response
 
 
-
-
-
-
-
-
-

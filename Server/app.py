@@ -5,6 +5,7 @@ from database.db import db
 from database.models import User
 from routes.routes import register_routes
 from flask_cors import CORS
+from flask_sock import Sock
 
 load_dotenv()
 
@@ -24,9 +25,11 @@ CORS(
     allow_headers=["Content-Type", "Authorization"],
 )
 
+sock = Sock(app)
+
 db.init_app(app)
 
-register_routes(app)
+register_routes(app, sock)
 
 try:
     with app.app_context():

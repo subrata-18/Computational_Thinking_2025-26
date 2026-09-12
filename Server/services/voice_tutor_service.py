@@ -80,7 +80,7 @@ def run_voice_session(ws):
                         
                 config = types.LiveConnectConfig(**config_kwargs)
 
-                async with client.aio.live.connect(model="gemini-2.5-flash-native-audio-preview-12-2025", config=config) as session:
+                async with client.aio.live.connect(model="gemini-3.1-flash-live-preview", config=config) as session:
                     print(f"Connected to Gemini API. Resuming handle: {session_handle}")
 
                     async def send_to_gemini():
